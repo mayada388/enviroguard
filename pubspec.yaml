@@ -1,0 +1,37 @@
+name: flutter_application_1
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  url_launcher: ^6.1.10
+  shared_preferences: ^2.2.2
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_messaging: ^16.1.1
+  firebase_auth: ^6.1.4
+  firebase_storage: ^13.0.6
+  jiffy: ^6.4.4
+  image_picker: ^1.2.1
+  http: ^1.6.0
+  awesome_dialog: ^3.3.0
+  dropdown_search: ^6.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/welcome_bg.png

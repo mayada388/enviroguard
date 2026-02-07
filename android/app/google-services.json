@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "79247422623",
+    "project_id": "enviroguard-1",
+    "storage_bucket": "enviroguard-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79247422623:android:74b29f1ac552f47aff1eaa",
+        "android_client_info": {
+          "package_name": "com.example.enviroguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoWKSJypRupxXKBSIYA0O-lzHz1yyc2ZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79247422623:android:58d247cc86ebf7c0ff1eaa",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoWKSJypRupxXKBSIYA0O-lzHz1yyc2ZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
