@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Welcome Back!',
+                'Welcome!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,

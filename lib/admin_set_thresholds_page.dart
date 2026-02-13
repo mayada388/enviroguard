@@ -45,22 +45,26 @@ class AdminSetThresholdsPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildLimitField(label: 'O₃ Limit :'),
-                const SizedBox(height: 12),
-                _buildLimitField(label: 'SO₂ Limit :'),
-                const SizedBox(height: 12),
-                _buildLimitField(label: 'CO Limit :'),
-                const SizedBox(height: 12),
-                _buildLimitField(label: 'PM10 Limit :'),
-                const SizedBox(height: 12),
-                _buildLimitField(label: 'PM2.5 Limit :'),
+                _buildLimitField(label: 'O₃ Limit'),
+                const SizedBox(height: 16),
+
+                _buildLimitField(label: 'SO₂ Limit'),
+                const SizedBox(height: 16),
+
+                _buildLimitField(label: 'CO Limit'),
+                const SizedBox(height: 16),
+
+                _buildLimitField(label: 'PM10 Limit'),
+                const SizedBox(height: 16),
+
+                _buildLimitField(label: 'PM2.5 Limit'),
                 const SizedBox(height: 24),
+
                 SizedBox(
                   width: 140,
                   height: 42,
                   child: ElevatedButton(
                     onPressed: () {
-                      // هنا مستقبلًا تحفظي القيم في قاعدة بيانات أو API
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Thresholds saved (UI only)'),
@@ -89,7 +93,7 @@ class AdminSetThresholdsPage extends StatelessWidget {
     );
   }
 
-  // حقل limit واحد بنفس ستايل الصورة
+  // ================= Limit Field =================
   Widget _buildLimitField({required String label}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,20 +106,68 @@ class AdminSetThresholdsPage extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF4F6),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const TextField(
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        const SizedBox(height: 8),
+
+        Row(
+          children: [
+            // Min Field
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Min',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF4F6),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const TextField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            const SizedBox(width: 12),
+
+            // Max Field
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Max',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF4F6),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const TextField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

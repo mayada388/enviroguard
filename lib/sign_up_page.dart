@@ -55,19 +55,20 @@ class _SignUpPageState extends State<SignUpPage> {
       final user = cred.user!;
       final uid = user.uid;
 
-      // 2) Save displayName (optional but useful)
+      // 2) Save displayName + reload (مهم عشان يتحدث فورًا)
       await user.updateDisplayName(name);
+      await user.reload();
 
-      // 3) Create/merge Firestore doc
+      // 3) Save user document in Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
-        'email': email,
+        'email': user.email ?? email,
         'phone': phone,
 
         // اختياري: تهيئة حقول مشروعكم
         'healthConditions': [],
         'personalAirAlerts': {},
-        'notificationsEnabled': true,
+        'notificationsEnabled': true, // غيريها false إذا تبغونها OFF افتراضي
         'tipsEnabled': true,
 
         'createdAt': FieldValue.serverTimestamp(),
@@ -82,6 +83,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     } on FirebaseAuthException catch (e) {
       String msg = 'فشل إنشاء الحساب';
+
       if (e.code == 'weak-password') msg = 'كلمة المرور ضعيفة';
       if (e.code == 'email-already-in-use') msg = 'الإيميل مستخدم من قبل';
       if (e.code == 'invalid-email') msg = 'الإيميل غير صحيح';
