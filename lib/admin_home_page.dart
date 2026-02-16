@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'notifications_page.dart';
-import 'login_page.dart';
+
 
 // ✅ Firebase
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,29 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // ✅ Admin Edit Profile Page
 import 'admin_profile_page.dart';
 
-// Control Panel pages
-import 'admin_system_monitoring_page.dart';
-import 'admin_manage_sensors_page.dart';
-import 'admin_set_thresholds_page.dart';
-
-// ✅ NEW pages
-import 'admin_manage_device_page.dart';
-import 'admin_device_maintenance_page.dart';
-import 'admin_add_admin_page.dart';
-
-/// أنواع الخيارات في قائمة Control Panel
-enum _AdminMenuAction {
-  systemMonitoring,
-  manageSensors,
-  setThresholds,
-
-  // ✅ NEW
-  manageDevices,
-  deviceMaintenance,
-  addAdmin,
-
-  logout,
-}
+import 'report_service.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -143,6 +121,271 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  // ================== Placeholders (بدون بيانات قبل اختيار الموقع) ==================
+
+  Widget _buildPlaceholders() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ===== Air Quality placeholder =====
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Air Quality',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFE9B35F),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Main Pollutant: --\nUpdated: --',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  const SizedBox(
+                    width: 85,
+                    height: 85,
+                    child: CircularProgressIndicator(
+                      value: 0,
+                      strokeWidth: 10,
+                      backgroundColor: Color(0xFFF1F1F1),
+                      valueColor:
+                          AlwaysStoppedAnimation(Color(0xFFE9B35F)),
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '--',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      Text(
+                        'AQI',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 30),
+
+        // ===== Metrological (نفس الشكل بس قيم فاضية) =====
+        const _SectionTitle(
+          title: 'Metrological Data',
+          icon: Icons.cloud_outlined,
+        ),
+        const SizedBox(height: 15),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 15,
+          crossAxisSpacing: 15,
+          childAspectRatio: 1.5,
+          children: const [
+            _MetCard(icon: Icons.compress, title: 'Pressure', value: '--'),
+            _MetCard(icon: Icons.thermostat, title: 'Temperatuer', value: '--'),
+            _MetCard(icon: Icons.air, title: 'Wind speed', value: '--'),
+            _MetCard(icon: Icons.water_drop_outlined, title: 'Humidity', value: '--'),
+          ],
+        ),
+
+        const SizedBox(height: 30),
+
+        // ===== Pollutants (نفس الشكل بس قيم فاضية) =====
+        const _SectionTitle(
+          title: 'Air Pollutants Levels',
+          icon: Icons.bar_chart_rounded,
+        ),
+        const SizedBox(height: 15),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Column(
+            children: [
+              _PollutantRow(
+                label: 'Particulate Matter 2.5',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+              _PollutantRow(
+                label: 'Particulate Matter 10',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+              _PollutantRow(
+                label: 'Ozone (O3)',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+              _PollutantRow(
+                label: 'Carbon Monoxide(CO)',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+              _PollutantRow(
+                label: 'Sulfer Dioxide (SO2)',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 30),
+
+        // ===== Forecasts placeholder (نفس شكل الرسم لكن bars صفر) =====
+        const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
+        const SizedBox(height: 15),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Particulate Matter 2.5',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(List.generate(
+                6,
+                (i) => const _Bar(
+                  value: 0,
+                  color: Color(0xFFB0BEC5),
+                  label: '--',
+                ),
+              )),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(color: Color(0xFFF1F1F1)),
+              ),
+              const Text(
+                'Particulate Matter 10',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(List.generate(
+                6,
+                (i) => const _Bar(
+                  value: 0,
+                  color: Color(0xFFB0BEC5),
+                  label: '--',
+                ),
+              )),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 30),
+
+        // ===== Download placeholder (بدون فعل) =====
+      // ===== Download (PDF) =====
+Center(
+  child: Opacity(
+    opacity: 0.6,
+    child: InkWell(
+      onTap: () async {
+        final locationId = _selectedLocationId;
+
+        if (locationId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a location first')),
+          );
+          return;
+        }
+
+        final locDoc = await FirebaseFirestore.instance
+            .collection('locations')
+            .doc(locationId)
+            .get();
+
+        final locationName =
+            (locDoc.data()?['name'] ?? locationId).toString();
+
+        await ReportService.downloadAirQualityReport(
+          locationId: locationId,
+          locationName: locationName,
+          context: context,
+        );
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.file_download_outlined,
+            color: primaryColor.withOpacity(0.6),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Download Air Quality Report',
+            style: TextStyle(
+              color: primaryColor.withOpacity(0.6),
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
   // ================== build ==================
 
   @override
@@ -172,27 +415,22 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   final userData = userSnap.data?.data();
 
                   // ===== Name =====
-                  final fromDbName =
-                      (userData?['name'] ?? '').toString().trim();
+                  final fromDbName = (userData?['name'] ?? '').toString().trim();
                   final fallbackName =
                       (user.displayName?.trim().isNotEmpty ?? false)
                           ? user.displayName!.trim()
                           : 'Admin';
-                  final nameToShow =
-                      fromDbName.isNotEmpty ? fromDbName : fallbackName;
+                  final nameToShow = fromDbName.isNotEmpty ? fromDbName : fallbackName;
 
                   // ===== Photo =====
-                  final photoUrl =
-                      (userData?['photoUrl'] ?? '').toString().trim();
+                  final photoUrl = (userData?['photoUrl'] ?? '').toString().trim();
                   final ImageProvider avatarProvider = photoUrl.isNotEmpty
                       ? NetworkImage(photoUrl)
                       : const AssetImage('assets/avatar.png');
 
                   // ===== locationId from users =====
-                  final fromDbLocId =
-                      (userData?['locationId'] ?? '').toString().trim();
-                  final String? nextId =
-                      fromDbLocId.isNotEmpty ? fromDbLocId : null;
+                  final fromDbLocId = (userData?['locationId'] ?? '').toString().trim();
+                  final String? nextId = fromDbLocId.isNotEmpty ? fromDbLocId : null;
 
                   // مزامنة محلية
                   if (nextId != _selectedLocationId) {
@@ -223,8 +461,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                               borderRadius: BorderRadius.circular(16),
                               onTap: _openEditProfile,
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(vertical: 6),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -289,18 +526,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                                     final String? safeValue =
                                         (_selectedLocationId != null &&
-                                                locDocs.any((d) =>
-                                                    d.id ==
-                                                    _selectedLocationId))
+                                                locDocs.any((d) => d.id == _selectedLocationId))
                                             ? _selectedLocationId
                                             : null;
 
-                                    // ✅ Responsive dropdown (التعديل المهم)
+                                    // ✅ Responsive dropdown
                                     return Flexible(
                                       child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 180,
-                                        ),
+                                        constraints: const BoxConstraints(maxWidth: 180),
                                         child: DropdownButtonHideUnderline(
                                           child: DropdownButton<String>(
                                             value: safeValue,
@@ -325,14 +558,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                             items: locDocs.map((d) {
                                               final data = d.data();
                                               final name =
-                                                  (data['name'] ?? d.id)
-                                                      .toString();
+                                                  (data['name'] ?? d.id).toString();
                                               return DropdownMenuItem<String>(
                                                 value: d.id,
                                                 child: Text(
                                                   name,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                  overflow: TextOverflow.ellipsis,
                                                   maxLines: 1,
                                                 ),
                                               );
@@ -340,11 +571,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                             onChanged: (newId) async {
                                               if (newId == null) return;
 
-                                              setState(() =>
-                                                  _selectedLocationId = newId);
-
-                                              await _saveLocationId(
-                                                  user, newId);
+                                              setState(() => _selectedLocationId = newId);
+                                              await _saveLocationId(user, newId);
                                             },
                                           ),
                                         ),
@@ -360,138 +588,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                       Row(
                         children: [
-                          PopupMenuButton<_AdminMenuAction>(
-                            child: const Padding(
-                              padding:
-                                  EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(
-                                'Control Panel',
-                                style: TextStyle(
-                                  color: Color(0xFFD65B66),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            itemBuilder: (context) => const [
-                              PopupMenuItem<_AdminMenuAction>(
-                                enabled: false,
-                                child: Text(
-                                  'Control Panel',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              PopupMenuDivider(),
-
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.systemMonitoring,
-                                child: Text('System Monitoring'),
-                              ),
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.manageSensors,
-                                child: Text('Manage Sensors'),
-                              ),
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.setThresholds,
-                                child: Text('Set Thresholds'),
-                              ),
-
-                              PopupMenuDivider(),
-
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.manageDevices,
-                                child: Text('Manage devices'),
-                              ),
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.deviceMaintenance,
-                                child: Text('Device maintenance'),
-                              ),
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.addAdmin,
-                                child: Text('Add admin'),
-                              ),
-
-                              PopupMenuDivider(),
-                              PopupMenuItem<_AdminMenuAction>(
-                                value: _AdminMenuAction.logout,
-                                child: Text('Logout'),
-                              ),
-                            ],
-                            onSelected: (value) {
-                              switch (value) {
-                                case _AdminMenuAction.systemMonitoring:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminSystemMonitoringPage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.manageSensors:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminManageSensorsPage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.setThresholds:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminSetThresholdsPage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.manageDevices:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminManageDevicePage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.deviceMaintenance:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminDeviceMaintenancePage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.addAdmin:
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AdminAddAdminPage(),
-                                    ),
-                                  );
-                                  break;
-
-                                case _AdminMenuAction.logout:
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const LoginPage(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                  break;
-                              }
-                            },
-                          ),
-
                           _HeaderIcon(
                             icon: Icons.notifications_none_rounded,
                             hasBadge: true,
@@ -499,8 +595,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      const NotificationsPage(),
+                                  builder: (_) => const NotificationsPage(),
                                 ),
                               );
                             },
@@ -514,320 +609,324 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
               const SizedBox(height: 25),
 
-              // ================== 2) Air Quality Card (من Firestore) ==================
-              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .snapshots(),
-                builder: (context, userSnap) {
-                  if (!userSnap.hasData) return const SizedBox();
+              // ✅ لو ما اختار موقع: اعرض نفس الأقسام لكن بدون بيانات
+              if (_selectedLocationId == null) ...[
+                _buildPlaceholders(),
+              ] else ...[
+                // ================== 2) Air Quality Card (من Firestore) ==================
+                StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('air_quality_data')
+                      .doc(_selectedLocationId)
+                      .snapshots(),
+                  builder: (context, aqSnap) {
+                    if (!aqSnap.hasData || aqSnap.data?.data() == null) {
+                      // لو ما فيه بيانات لهذا الموقع، اعرض placeholder بدل ما تختفي الصفحة
+                      return _buildPlaceholders();
+                    }
 
-                  final userData = userSnap.data!.data();
-                  final locationId = (userData?['locationId'] ?? '').toString().trim();
-                  if (locationId.isEmpty) return const SizedBox();
+                    final data = aqSnap.data!.data()!;
+                    final aqi = (data['aqi'] ?? 0);
+                    final mainPollutant = (data['mainPollutant'] ?? '-').toString();
 
-                  return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection('air_quality_data')
-                        .doc(locationId)
-                        .snapshots(),
-                    builder: (context, aqSnap) {
-                      if (!aqSnap.hasData || aqSnap.data?.data() == null) {
-                        return const SizedBox();
+                    final ts = data['updateTime'] as Timestamp?;
+                    String updatedText = 'Updated: -';
+                    if (ts != null) {
+                      final dt = ts.toDate();
+                      int hour = dt.hour;
+                      final minute = dt.minute.toString().padLeft(2, '0');
+                      final ampm = hour >= 12 ? 'PM' : 'AM';
+                      if (hour == 0) {
+                        hour = 12;
+                      } else if (hour > 12) {
+                        hour -= 12;
                       }
+                      updatedText = 'Updated: $hour:$minute $ampm';
+                    }
 
-                      final data = aqSnap.data!.data()!;
-                      final aqi = (data['aqi'] ?? 0);
-                      final mainPollutant = (data['mainPollutant'] ?? '-').toString();
-
-                      final ts = data['updateTime'] as Timestamp?;
-                      String updatedText = 'Updated: -';
-                      if (ts != null) {
-                        final dt = ts.toDate();
-                        int hour = dt.hour;
-                        final minute = dt.minute.toString().padLeft(2, '0');
-                        final ampm = hour >= 12 ? 'PM' : 'AM';
-                        if (hour == 0) {
-                          hour = 12;
-                        } else if (hour > 12) {
-                          hour -= 12;
-                        }
-                        updatedText = 'Updated: $hour:$minute $ampm';
-                      }
-
-                      return Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 20,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Air Quality',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFE9B35F),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Main Pollutant: $mainPollutant\n$updatedText',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 12,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 85,
-                                  height: 85,
-                                  child: CircularProgressIndicator(
-                                    value: (aqi / 150).clamp(0, 1).toDouble(),
-                                    strokeWidth: 10,
-                                    backgroundColor: const Color(0xFFF1F1F1),
-                                    valueColor: const AlwaysStoppedAnimation(
-                                      Color(0xFFE9B35F),
-                                    ),
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '$aqi',
-                                      style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: primaryColor,
-                                      ),
-                                    ),
-                                    Text(
-                                      'AQI',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              // ================== 3) Metrological Data ==================
-              const _SectionTitle(
-                title: 'Metrological Data',
-                icon: Icons.cloud_outlined,
-              ),
-              const SizedBox(height: 15),
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: 1.5,
-                children: const [
-                  _MetCard(icon: Icons.compress, title: 'Pressure', value: '720 hpa'),
-                  _MetCard(icon: Icons.thermostat, title: 'Temperatuer', value: '29°'),
-                  _MetCard(icon: Icons.air, title: 'Wind speed', value: '12km/h'),
-                  _MetCard(icon: Icons.water_drop_outlined, title: 'Humidity', value: '2,3'),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              // ================== 4) Air Pollutants Levels ==================
-              const _SectionTitle(
-                title: 'Air Pollutants Levels',
-                icon: Icons.bar_chart_rounded,
-              ),
-              const SizedBox(height: 15),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Column(
-                  children: [
-                    _PollutantRow(
-                      label: 'Particulate Matter 2.5',
-                      value: '80.0',
-                      status: 'Unhealthy',
-                      color: Color(0xFFD65B66),
-                    ),
-                    _PollutantRow(
-                      label: 'Particulate Matter 10',
-                      value: '69.6',
-                      status: 'Moderate',
-                      color: Color(0xFFE9B35F),
-                    ),
-                    _PollutantRow(
-                      label: 'Ozone (O3)',
-                      value: '19.4',
-                      status: 'Good',
-                      color: Colors.green,
-                    ),
-                    _PollutantRow(
-                      label: 'Carbon Monoxide(CO)',
-                      value: '3.3',
-                      status: 'Good',
-                      color: Colors.green,
-                    ),
-                    _PollutantRow(
-                      label: 'Sulfer Dioxide (SO2)',
-                      value: '1.5',
-                      status: 'Good',
-                      color: Colors.green,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // ================== 5) Forecasts (من Firestore) ==================
-              const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
-              const SizedBox(height: 15),
-
-              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .snapshots(),
-                builder: (context, userSnap) {
-                  if (!userSnap.hasData) return const SizedBox();
-
-                  final userData = userSnap.data!.data();
-                  final locationId =
-                      (userData?['locationId'] ?? '').toString().trim();
-                  if (locationId.isEmpty) return const SizedBox();
-
-                  return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection('predictions')
-                        .doc(locationId)
-                        .snapshots(),
-                    builder: (context, predSnap) {
-                      if (!predSnap.hasData || predSnap.data?.data() == null) {
-                        return Container(
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
                           padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 20,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Air Quality',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFE9B35F),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Main Pollutant: $mainPollutant\n$updatedText',
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 12,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 85,
+                                    height: 85,
+                                    child: CircularProgressIndicator(
+                                      value: (aqi / 150).clamp(0, 1).toDouble(),
+                                      strokeWidth: 10,
+                                      backgroundColor: const Color(0xFFF1F1F1),
+                                      valueColor: const AlwaysStoppedAnimation(
+                                        Color(0xFFE9B35F),
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '$aqi',
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        'AQI',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[500],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // ================== 3) Metrological Data (ثابتة زي كودك) ==================
+                        const _SectionTitle(
+                          title: 'Metrological Data',
+                          icon: Icons.cloud_outlined,
+                        ),
+                        const SizedBox(height: 15),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 15,
+                          crossAxisSpacing: 15,
+                          childAspectRatio: 1.5,
+                          children: const [
+                            _MetCard(icon: Icons.compress, title: 'Pressure', value: '720 hpa'),
+                            _MetCard(icon: Icons.thermostat, title: 'Temperatuer', value: '29°'),
+                            _MetCard(icon: Icons.air, title: 'Wind speed', value: '12km/h'),
+                            _MetCard(icon: Icons.water_drop_outlined, title: 'Humidity', value: '2,3'),
+                          ],
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // ================== 4) Air Pollutants Levels (ثابتة زي كودك) ==================
+                        const _SectionTitle(
+                          title: 'Air Pollutants Levels',
+                          icon: Icons.bar_chart_rounded,
+                        ),
+                        const SizedBox(height: 15),
+                        Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Center(
-                            child: Text(
-                              'No forecast data available.',
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
+                          child: const Column(
+                            children: [
+                              _PollutantRow(
+                                label: 'Particulate Matter 2.5',
+                                value: '80.0',
+                                status: 'Unhealthy',
+                                color: Color(0xFFD65B66),
+                              ),
+                              _PollutantRow(
+                                label: 'Particulate Matter 10',
+                                value: '69.6',
+                                status: 'Moderate',
+                                color: Color(0xFFE9B35F),
+                              ),
+                              _PollutantRow(
+                                label: 'Ozone (O3)',
+                                value: '19.4',
+                                status: 'Good',
+                                color: Colors.green,
+                              ),
+                              _PollutantRow(
+                                label: 'Carbon Monoxide(CO)',
+                                value: '3.3',
+                                status: 'Good',
+                                color: Colors.green,
+                              ),
+                              _PollutantRow(
+                                label: 'Sulfer Dioxide (SO2)',
+                                value: '1.5',
+                                status: 'Good',
+                                color: Colors.green,
+                              ),
+                            ],
                           ),
-                        );
-                      }
-
-                      final predData = predSnap.data!.data()!;
-                      final pm25List =
-                          (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
-                      final pm10List =
-                          (predData['pm10Forecast'] as List<dynamic>?) ?? [];
-
-                      final pm25Bars = _barsFromForecast(pm25List);
-                      final pm10Bars = _barsFromForecast(pm10List);
-
-                      return Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Particulate Matter 2.5',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+
+                        const SizedBox(height: 30),
+
+                        // ================== 5) Forecasts (من Firestore) ==================
+                        const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
+                        const SizedBox(height: 15),
+
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                          stream: FirebaseFirestore.instance
+                              .collection('predictions')
+                              .doc(_selectedLocationId)
+                              .snapshots(),
+                          builder: (context, predSnap) {
+                            if (!predSnap.hasData || predSnap.data?.data() == null) {
+                              // بدل ما نقول no data، نخلي الشكل موجود
+                              return Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'No forecast data available.',
+                                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final predData = predSnap.data!.data()!;
+                            final pm25List =
+                                (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
+                            final pm10List =
+                                (predData['pm10Forecast'] as List<dynamic>?) ?? [];
+
+                            final pm25Bars = _barsFromForecast(pm25List);
+                            final pm10Bars = _barsFromForecast(pm10List);
+
+                            return Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                            ),
-                            const SizedBox(height: 20),
-                            _buildChartBackground(pm25Bars),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Divider(color: Color(0xFFF1F1F1)),
-                            ),
-                            const Text(
-                              'Particulate Matter 10',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Particulate Matter 2.5',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(pm25Bars),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Divider(color: Color(0xFFF1F1F1)),
+                                  ),
+                                  const Text(
+                                    'Particulate Matter 10',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(pm10Bars),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 20),
-                            _buildChartBackground(pm10Bars),
-                          ],
+                            );
+                          },
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
 
-              const SizedBox(height: 30),
+                        const SizedBox(height: 30),
+Center(
+  child: InkWell(
+    onTap: () async {
+      if (_selectedLocationId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a location first')),
+        );
+        return;
+      }
 
-              Center(
-                child: InkWell(
-                  onTap: () {},
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.file_download_outlined,
-                        color: primaryColor.withOpacity(0.6),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Download Air Quality Report',
-                        style: TextStyle(
-                          color: primaryColor.withOpacity(0.6),
-                          fontWeight: FontWeight.w500,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ],
-                  ),
+      // جلب اسم الموقع الحقيقي
+      final locDoc = await FirebaseFirestore.instance
+          .collection('locations')
+          .doc(_selectedLocationId)
+          .get();
+
+      final locationName =
+          (locDoc.data()?['name'] ?? _selectedLocationId).toString();
+
+      await ReportService.downloadAirQualityReport(
+        locationId: _selectedLocationId!,
+        locationName: locationName,
+        context: context,
+      );
+    },
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.file_download_outlined,
+          color: primaryColor.withOpacity(0.6),
+          size: 20,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Download Air Quality Report',
+          style: TextStyle(
+            color: primaryColor.withOpacity(0.6),
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+                        const SizedBox(height: 40),
+                      ],
+                    );
+                  },
                 ),
-              ),
-
-              const SizedBox(height: 40),
+              ],
             ],
           ),
         ),

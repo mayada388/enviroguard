@@ -5,7 +5,6 @@ class AdminManageSensorsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF32345F);
     const backgroundColor = Color(0xFFF7F7FB);
 
     return Scaffold(

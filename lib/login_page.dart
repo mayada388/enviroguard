@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'sign_up_page.dart';
 import 'home_page.dart';
-import 'admin_home_page.dart'; // عشان نفتح واجهة الأدمن
-import 'package:firebase_auth/firebase_auth.dart';
-
-// بيانات مؤقتة للأدمن (نغيّرها لاحقاً لما نربط Firebase)
-const String kAdminEmail = 'admin@gmail.com';
-const String kAdminPassword = 'Admin123';
-const String kAdminUid = 'hmOXrIU3QwTWbe3Ej83owSFB3yT2';
+import 'admin_root_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -31,8 +30,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF32345F);
-    final backgroundColor = const Color(0xFFF7F7FB);
+    const primaryColor = Color(0xFF32345F);
+    const backgroundColor = Color(0xFFF7F7FB);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -42,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
         title: const Text(
           'Log In',
@@ -71,7 +70,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 32),
 
-              // E-mail
               _buildInputField(
                 label: 'E-mail',
                 hint: 'Enter your email',
@@ -79,18 +77,14 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _emailController,
                 validator: (value) {
                   final text = value?.trim() ?? '';
-                  if (text.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!text.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
+                  if (text.isEmpty) return 'Please enter your email';
+                  if (!text.contains('@')) return 'Please enter a valid email';
                   return null;
                 },
               ),
+
               const SizedBox(height: 20),
 
-              // Password
               _buildInputField(
                 label: 'Password',
                 hint: 'Enter your password',
@@ -99,24 +93,19 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _passwordController,
                 validator: (value) {
                   final text = value ?? '';
-                  if (text.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (text.length < 8) {
-                    return 'Password must be at least 8 characters';
-                  }
+                  if (text.isEmpty) return 'Please enter your password';
+                  if (text.length < 8) return 'Password must be at least 8 characters';
                   return null;
                 },
               ),
 
               const SizedBox(height: 40),
 
-              // زر Log In
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () => _handleLogin(context),
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryColor,
                     shape: RoundedRectangleBorder(
@@ -124,34 +113,39 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Log In',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              // Sign Up link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Don't have an account? "),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignUpPage(),
-                        ),
-                      );
-                    },
-                    child: Text(
+                    onTap: _isLoading
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const SignUpPage()),
+                            );
+                          },
+                    child: const Text(
                       'Sign Up',
                       style: TextStyle(
                         color: primaryColor,
@@ -161,9 +155,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 12),
-              // (مافي Login as Admin الآن – نفس الواجهة للجميع)
             ],
           ),
         ),
@@ -171,59 +162,64 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> _handleLogin(BuildContext context) async {
-  // التحقق من الحقول
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  final email = _emailController.text.trim();
-  final password = _passwordController.text.trim();
+    setState(() => _isLoading = true);
 
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-    // ✅ نجاح الدخول
- // ✅ Success
-final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-  email: email.trim(),
-  password: password.trim(),
-);
+    try {
+      final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-final uid = cred.user?.uid;
-print("Logged in uid: $uid");
+      final uid = cred.user?.uid;
+      if (uid == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed: no user returned.')),
+        );
+        return;
+      }
 
-if (uid == kAdminUid) {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (_) => const AdminHomePage()),
-  );
-} else {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (_) => const HomePage()),
-  );
-}
-  } on FirebaseAuthException catch (e) {
-    String msg = 'Login failed. Please try again.';
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final role = (doc.data()?['role'] ?? 'user').toString();
 
-    if (e.code == 'user-not-found') {
-      msg = 'No user found for that email.';
-    } else if (e.code == 'wrong-password') {
-      msg = 'Wrong password provided.';
-    } else if (e.code == 'invalid-email') {
-      msg = 'The email address is not valid.';
-    } else if (e.code == 'user-disabled') {
-      msg = 'This user has been disabled.';
+      if (!mounted) return;
+
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => AdminRootPage()), // ✅ بدون const
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => HomePage()), // ✅ بدون const
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      String msg = 'Login failed. Please try again.';
+      if (e.code == 'user-not-found') msg = 'No user found for that email.';
+      if (e.code == 'wrong-password') msg = 'Wrong password provided.';
+      if (e.code == 'invalid-email') msg = 'Invalid email.';
+      if (e.code == 'user-disabled') msg = 'This user has been disabled.';
+      if (e.code == 'too-many-requests') msg = 'Too many attempts. Try again later.';
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
   }
-}
-  // نفس دالة بناء الحقول لكن باستخدام TextFormField + validator + controller
+
   Widget _buildInputField({
     required String label,
     required String hint,

@@ -25,6 +25,14 @@ dependencies:
   awesome_dialog: ^3.3.0
   dropdown_search: ^6.0.2
 
+  # ================= PDF Download =================
+  pdf: ^3.11.0
+  printing: ^5.13.4
+  path_provider: ^2.1.4
+  open_filex: ^4.5.0
+  intl: ^0.20.2
+  # ===============================================
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -35,3 +43,4 @@ flutter:
 
   assets:
     - assets/welcome_bg.png
+    - assets/avatar.png

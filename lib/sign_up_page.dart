@@ -15,7 +15,6 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -25,7 +24,6 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -33,7 +31,6 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> _signUp() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
-    final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
@@ -63,7 +60,7 @@ class _SignUpPageState extends State<SignUpPage> {
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
         'email': user.email ?? email,
-        'phone': phone,
+  
 
         // اختياري: تهيئة حقول مشروعكم
         'healthConditions': [],
@@ -149,13 +146,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       controller: _emailController,
                       hint: 'E-mail',
                       keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildTextField(
-                      controller: _phoneController,
-                      hint: 'Phone',
-                      keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 16),
 
