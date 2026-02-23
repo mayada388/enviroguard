@@ -47,7 +47,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   /// ================= PERSONAL ALERTS =================
   final List<String> _pollutantAlerts = [
-    "PM2.5",
+    "PM2_5",
     "PM10",
     "O3",
     "CO",
@@ -62,16 +62,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final Set<String> _autoRecommendedAlerts = {};
 
   final Map<String, List<String>> _recommendedAlertsByCondition = {
-    "Asthma": ["PM2.5", "O3", "Forecast (10 min)", "Rapid Change"],
-    "COPD": ["PM2.5", "O3", "Forecast (10 min)"],
-    "Bronchitis": ["PM2.5", "PM10", "Forecast (10 min)"],
-    "Allergies": ["PM10", "PM2.5", "Rapid Change"],
-    "Heart Disease": ["PM2.5", "CO", "Forecast (10 min)"],
-    "Hypertension": ["PM2.5", "CO", "Forecast (10 min)"],
-    "Pregnancy": ["PM2.5", "PM10", "O3", "Forecast (10 min)"],
-    "Children (Under 12)": ["PM2.5", "PM10", "Forecast (10 min)"],
-    "Elderly (60+)": ["PM2.5", "PM10", "Forecast (10 min)"],
-    "Low Immunity": ["PM2.5", "Forecast (10 min)"],
+    "Asthma": ["PM2_5", "O3", "Forecast (10 min)", "Rapid Change"],
+    "COPD": ["PM2_5", "O3", "Forecast (10 min)"],
+    "Bronchitis": ["PM2_5", "PM10", "Forecast (10 min)"],
+    "Allergies": ["PM10", "PM2_5", "Rapid Change"],
+    "Heart Disease": ["PM2_5", "CO", "Forecast (10 min)"],
+    "Hypertension": ["PM2_5", "CO", "Forecast (10 min)"],
+    "Pregnancy": ["PM2_5", "PM10", "O3", "Forecast (10 min)"],
+    "Children (Under 12)": ["PM2_5", "PM10", "Forecast (10 min)"],
+    "Elderly (60+)": ["PM2_5", "PM10", "Forecast (10 min)"],
+    "Low Immunity": ["PM2_5", "Forecast (10 min)"],
   };
 
   void _applyRecommendedAlertsFor(String condition) {
