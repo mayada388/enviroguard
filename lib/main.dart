@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'firebase_options.dart';
+import 'login_page.dart';
+import 'home_page.dart';
+import 'admin_root_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +28,68 @@ class EnviroGuard extends StatelessWidget {
         primaryColor: const Color(0xFF32345F),
         fontFamily: 'Roboto',
       ),
-      home: const WelcomePage(),
+      home: const AuthGate(), //  بدّلنا WelcomePage إلى AuthGate
     );
   }
 }
+
+/// يقرر يودي المستخدم فين
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  Future<String> _checkRole(String uid) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+
+    return (doc.data()?['role'] ?? 'user').toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // لسه يتصل بـ Firebase
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // ما فيه مستخدم → نرجع لشاشة الترحيب
+        if (!snapshot.hasData) {
+          return const WelcomePage();
+        }
+
+        // فيه مستخدم → نشوف هل هو admin أو user
+        final user = snapshot.data!;
+        return FutureBuilder<String>(
+          future: _checkRole(user.uid),
+          builder: (context, roleSnap) {
+            if (roleSnap.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final role = roleSnap.data ?? 'user';
+
+            if (role == 'admin') {
+              return const AdminRootPage();
+            } else {
+              return const HomePage();
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Welcome Page 
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});

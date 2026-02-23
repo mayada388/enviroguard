@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'about_app_page.dart';
 import 'share_page.dart';
 import 'join_page.dart';
 import 'feedback_page.dart';
-import 'sign_up_page.dart';
+import 'login_page.dart';
+
+// ربط الإعدادات بالموقع (Firebase)
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,21 +29,61 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSetting() async {
     final prefs = await SharedPreferences.getInstance();
+    bool value = prefs.getBool('notificationsEnabled') ?? false;
 
-    // ✅ OFF by default (أول مرة فقط)
-    if (!prefs.containsKey('notificationsEnabled')) {
-      await prefs.setBool('notificationsEnabled', false);
+    // نحاول نقرأ القيمة من Firestore لو فيه مستخدم
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        if (data['notificationsEnabled'] != null) {
+          value = data['notificationsEnabled'] == true;
+        } else {
+          // لو الحقل مو موجود نحط القيمة الافتراضية في الفايرستور
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set(
+            {
+              'notificationsEnabled': value,
+            },
+            SetOptions(merge: true),
+          );
+        }
+      }
     }
 
+    // نخزن نفس القيمة في SharedPreferences + نحدث الواجهة
     if (!mounted) return;
     setState(() {
-      notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
+      notificationsEnabled = value;
     });
+    await prefs.setBool('notificationsEnabled', value);
   }
 
   Future<void> _setNotifications(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notificationsEnabled', value);
+
+    // نحدّث حقل notificationsEnabled في وثيقة المستخدم في Firestore
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(
+        {
+          'notificationsEnabled': value,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
 
     if (!mounted) return;
     setState(() {
@@ -155,13 +198,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 },
               ),
+
               _settingsTile(
                 title: 'Logout',
                 isLogout: true,
-                onTap: () {
-                  Navigator.pushReplacement(
+                onTap: () async {
+                  // تسجيل خروج فعلي من Firebase
+                  await FirebaseAuth.instance.signOut();
+
+                  if (!mounted) return;
+
+                  // نودّي المستخدم لصفحة تسجيل الدخول ونمسح كل الRoutes
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const SignUpPage()),
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
                   );
                 },
               ),

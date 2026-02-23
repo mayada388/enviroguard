@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ✅ مهم
 import 'login_page.dart'; 
 
 class LogoutPage extends StatelessWidget {
@@ -6,7 +7,7 @@ class LogoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF32345F);
+    const primaryColor = Color(0xFF32345F);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -14,10 +15,13 @@ class LogoutPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryColor),
+          icon: const Icon(Icons.arrow_back, color: primaryColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Logout', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Logout',
+          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Center(
         child: Padding(
@@ -37,12 +41,15 @@ class LogoutPage extends StatelessWidget {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // التعديل الرئيسي: الانتقال لصفحة اللوج إن وحذف كل السجل السابق
+                  onPressed: () async {
+                    // تسجيل خروج من Firebase
+                    await FirebaseAuth.instance.signOut();
+
+                    // بعدين نروح لصفحة اللوج إن ونمسح كل الصفحات اللي قبلها
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginPage()),
-                      (route) => false, // يمنع المستخدم من العودة للهوم بزر الرجوع
+                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -53,7 +60,11 @@ class LogoutPage extends StatelessWidget {
                   ),
                   child: const Text(
                     'Logout',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

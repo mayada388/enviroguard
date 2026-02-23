@@ -43,7 +43,7 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _loading = true);
 
     try {
-      // 1) Create user in Firebase Auth
+      // 1) إنشاء المستخدم في Firebase Auth
       final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -52,20 +52,24 @@ class _SignUpPageState extends State<SignUpPage> {
       final user = cred.user!;
       final uid = user.uid;
 
-      // 2) Save displayName + reload (مهم عشان يتحدث فورًا)
+      // 2) حفظ displayName + reload (مهم عشان يتحدث فوراً)
       await user.updateDisplayName(name);
       await user.reload();
 
-      // 3) Save user document in Firestore
+      // 3) إنشاء وثيقة المستخدم في Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
         'email': user.email ?? email,
-  
 
-        // اختياري: تهيئة حقول مشروعكم
+        // تعريف الدور: مستخدم عادي
+        'role': 'user',
+
+        // تهيئة الحقول 
         'healthConditions': [],
         'personalAirAlerts': {},
-        'notificationsEnabled': true, // غيريها false إذا تبغونها OFF افتراضي
+
+        // الإشعارات تكون مقفلة أول مرة
+        'notificationsEnabled': false,
         'tipsEnabled': true,
 
         'createdAt': FieldValue.serverTimestamp(),
@@ -74,6 +78,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (!mounted) return;
 
+      // الانتقال إلى صفحة الهوم بعد التسجيل
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
@@ -84,7 +89,9 @@ class _SignUpPageState extends State<SignUpPage> {
       if (e.code == 'weak-password') msg = 'كلمة المرور ضعيفة';
       if (e.code == 'email-already-in-use') msg = 'الإيميل مستخدم من قبل';
       if (e.code == 'invalid-email') msg = 'الإيميل غير صحيح';
-      if (e.code == 'operation-not-allowed') msg = 'Email/Password غير مفعّل في Firebase';
+      if (e.code == 'operation-not-allowed') {
+        msg = 'Email/Password غير مفعّل في Firebase';
+      }
       if (e.code == 'network-request-failed') msg = 'مشكلة اتصال بالنت';
 
       if (!mounted) return;
@@ -155,8 +162,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       decoration: InputDecoration(
                         hintText: 'Password',
                         hintStyle: TextStyle(color: greyText, fontSize: 14),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -169,7 +178,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             size: 20,
                             color: greyText,
                           ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ),
                     ),

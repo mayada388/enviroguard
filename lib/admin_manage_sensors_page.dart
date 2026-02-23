@@ -1,7 +1,137 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class AdminManageSensorsPage extends StatelessWidget {
+class AdminManageSensorsPage extends StatefulWidget {
   const AdminManageSensorsPage({super.key});
+
+  @override
+  State<AdminManageSensorsPage> createState() => _AdminManageSensorsPageState();
+}
+
+class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
+  final _sensorsRef = FirebaseFirestore.instance.collection('sensors');
+
+  // Add controllers
+  final _addSensorId = TextEditingController();
+  final _addSensorType = TextEditingController();
+  final _addLocationId = TextEditingController();
+
+  // Update controllers
+  String? _selectedSensorId;
+  final _newName = TextEditingController();
+  final _newStatus = TextEditingController();
+  final _newLocationId = TextEditingController();
+
+  // Delete controllers
+  final _delSensorId = TextEditingController();
+  final _delSensorType = TextEditingController(); // optional (UI only)
+  final _delLocationId = TextEditingController(); // optional (UI only)
+
+  @override
+  void dispose() {
+    _addSensorId.dispose();
+    _addSensorType.dispose();
+    _addLocationId.dispose();
+    _newName.dispose();
+    _newStatus.dispose();
+    _newLocationId.dispose();
+    _delSensorId.dispose();
+    _delSensorType.dispose();
+    _delLocationId.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addSensor() async {
+    final sensorId = _addSensorId.text.trim();
+    final sensorType = _addSensorType.text.trim();
+    final locationId = _addLocationId.text.trim();
+
+    if (sensorId.isEmpty || sensorType.isEmpty || locationId.isEmpty) {
+      _toast('Please fill Sensor ID, Sensor Type, and Location');
+      return;
+    }
+
+    try {
+      await _sensorsRef.doc(sensorId).set({
+        'deviceId': 'raspberry', // خليها ثابتة الآن أو اربطيها بواجهة لاحقًا
+        'locationId': locationId,
+        'sensorName': '', // اختياري
+        'sensorType': sensorType,
+        'status': 'Active', // default
+        'lastUpdate': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      _toast('Sensor added: $sensorId');
+      _addSensorId.clear();
+      _addSensorType.clear();
+      _addLocationId.clear();
+    } catch (e) {
+      _toast('Add failed: $e');
+    }
+  }
+
+  Future<void> _updateSensor() async {
+    final id = _selectedSensorId;
+    if (id == null || id.isEmpty) {
+      _toast('Select Sensor ID first');
+      return;
+    }
+
+    final updates = <String, dynamic>{};
+
+    final name = _newName.text.trim();
+    final status = _newStatus.text.trim();
+    final locationId = _newLocationId.text.trim();
+
+    if (name.isNotEmpty) updates['sensorName'] = name;
+    if (status.isNotEmpty) updates['status'] = status;
+    if (locationId.isNotEmpty) updates['locationId'] = locationId;
+
+    if (updates.isEmpty) {
+      _toast('No changes to update');
+      return;
+    }
+
+    // always refresh lastUpdate when admin updates
+    updates['lastUpdate'] = FieldValue.serverTimestamp();
+
+    try {
+      await _sensorsRef.doc(id).update(updates);
+      _toast('Sensor updated: $id');
+      _newName.clear();
+      _newStatus.clear();
+      _newLocationId.clear();
+    } catch (e) {
+      _toast('Update failed: $e');
+    }
+  }
+
+  Future<void> _deleteSensor() async {
+    final sensorId = _delSensorId.text.trim();
+    if (sensorId.isEmpty) {
+      _toast('Enter Sensor ID to delete');
+      return;
+    }
+
+    try {
+      await _sensorsRef.doc(sensorId).delete();
+      _toast('Sensor deleted: $sensorId');
+      _delSensorId.clear();
+      _delSensorType.clear();
+      _delLocationId.clear();
+
+      // لو كان هو المحدد في التحديث، فضّيه
+      if (_selectedSensorId == sensorId) {
+        setState(() => _selectedSensorId = null);
+      }
+    } catch (e) {
+      _toast('Delete failed: $e');
+    }
+  }
+
+  void _toast(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +149,7 @@ class AdminManageSensorsPage extends StatelessWidget {
         ),
         title: const Text(
           'Manage Sensors',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -33,37 +160,30 @@ class AdminManageSensorsPage extends StatelessWidget {
               title: 'Add Sensor',
               buttonText: 'Add Sensor',
               buttonColor: const Color(0xFF9BE7AE),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Add Sensor (UI only)')),
-                );
-              },
-              fields: const [
-                _SensorField(label: 'Sensor ID :'),
-                _SensorField(label: 'Sensor Type :'),
-                _SensorField(label: 'Location :'),
+              onPressed: _addSensor,
+              fields: [
+                _SensorField(label: 'Sensor ID :', controller: _addSensorId),
+                _SensorField(label: 'Sensor Type :', controller: _addSensorType),
+                _SensorField(label: 'Location :', controller: _addLocationId),
               ],
             ),
-
             const SizedBox(height: 20),
 
             _SectionCard(
               title: 'Update Sensor',
               buttonText: 'Update',
               buttonColor: const Color(0xFFFEE0A7),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Update Sensor (UI only)')),
-                );
-              },
-              fields: const [
-                _SensorField(
+              onPressed: _updateSensor,
+              fields: [
+                _SensorDropdownField(
                   label: 'Select Sensor ID :',
-                  isDropdownVisual: true,
+                  value: _selectedSensorId,
+                  stream: _sensorsRef.orderBy(FieldPath.documentId).snapshots(),
+                  onChanged: (v) => setState(() => _selectedSensorId = v),
                 ),
-                _SensorField(label: 'New Name :'),
-                _SensorField(label: 'New Status :'),
-                _SensorField(label: 'New Location :'),
+                _SensorField(label: 'New Name :', controller: _newName),
+                _SensorField(label: 'New Status :', controller: _newStatus),
+                _SensorField(label: 'New Location :', controller: _newLocationId),
               ],
             ),
 
@@ -73,15 +193,11 @@ class AdminManageSensorsPage extends StatelessWidget {
               title: 'Delete Sensor',
               buttonText: 'Delete',
               buttonColor: const Color(0xFFFFC7CF),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Delete Sensor (UI only)')),
-                );
-              },
-              fields: const [
-                _SensorField(label: 'Sensor ID :'),
-                _SensorField(label: 'Sensor Type :'),
-                _SensorField(label: 'Location :'),
+              onPressed: _deleteSensor,
+              fields: [
+                _SensorField(label: 'Sensor ID :', controller: _delSensorId),
+                _SensorField(label: 'Sensor Type :', controller: _delSensorType),
+                _SensorField(label: 'Location :', controller: _delLocationId),
               ],
             ),
           ],
@@ -91,7 +207,6 @@ class AdminManageSensorsPage extends StatelessWidget {
   }
 }
 
-// الكرت الكامل لكل جزء (Add / Update / Delete)
 class _SectionCard extends StatelessWidget {
   final String title;
   final String buttonText;
@@ -154,10 +269,8 @@ class _SectionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-                child: Text(
-                  buttonText,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
+                child: Text(buttonText,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ),
@@ -167,15 +280,11 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// حقل واحد داخل كل سكشن
 class _SensorField extends StatelessWidget {
   final String label;
-  final bool isDropdownVisual;
+  final TextEditingController controller;
 
-  const _SensorField({
-    required this.label,
-    this.isDropdownVisual = false,
-  });
+  const _SensorField({required this.label, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -198,15 +307,73 @@ class _SensorField extends StatelessWidget {
             border: Border.all(color: const Color(0xFFE9E9E9)),
           ),
           child: TextField(
-            readOnly: isDropdownVisual, // بس شكل دروب داون – ما فيه منطق حقيقي
-            decoration: InputDecoration(
+            controller: controller,
+            decoration: const InputDecoration(
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              suffixIcon: isDropdownVisual
-                  ? const Icon(Icons.arrow_drop_down, color: Colors.grey)
-                  : null,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SensorDropdownField extends StatelessWidget {
+  final String label;
+  final String? value;
+  final Stream<QuerySnapshot<Map<String, dynamic>>> stream;
+  final ValueChanged<String?> onChanged;
+
+  const _SensorDropdownField({
+    required this.label,
+    required this.value,
+    required this.stream,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFFAAAAAA),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFDFDFD),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE9E9E9)),
+          ),
+          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: stream,
+            builder: (context, snap) {
+              final docs = snap.data?.docs ?? [];
+              final ids = docs.map((d) => d.id).toList();
+
+              return DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: (value != null && ids.contains(value)) ? value : null,
+                  hint: const Text('Select'),
+                  isExpanded: true,
+                  items: ids
+                      .map((id) => DropdownMenuItem(
+                            value: id,
+                            child: Text(id),
+                          ))
+                      .toList(),
+                  onChanged: onChanged,
+                ),
+              );
+            },
           ),
         ),
       ],
