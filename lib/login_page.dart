@@ -28,6 +28,46 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your email first')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset email sent')),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      String msg = 'Error occurred';
+      if (e.code == 'user-not-found') {
+        msg = 'No user found for this email';
+      } else if (e.code == 'invalid-email') {
+        msg = 'Invalid email';
+      } else if (e.code == 'network-request-failed') {
+        msg = 'Network error';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF32345F);
@@ -94,12 +134,30 @@ class _LoginPageState extends State<LoginPage> {
                 validator: (value) {
                   final text = value ?? '';
                   if (text.isEmpty) return 'Please enter your password';
-                  if (text.length < 8) return 'Password must be at least 8 characters';
+                  if (text.length < 8) {
+                    return 'Password must be at least 8 characters';
+                  }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 8),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _resetPassword,
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
               SizedBox(
                 width: double.infinity,
@@ -142,7 +200,9 @@ class _LoginPageState extends State<LoginPage> {
                         : () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const SignUpPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const SignUpPage(),
+                              ),
                             );
                           },
                     child: const Text(
@@ -176,7 +236,29 @@ class _LoginPageState extends State<LoginPage> {
         password: password,
       );
 
-      final uid = cred.user?.uid;
+      final user = cred.user;
+      if (user == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed: no user returned.')),
+        );
+        return;
+      }
+
+      await user.reload();
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+
+      if (refreshedUser != null && !refreshedUser.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please verify your email first')),
+        );
+        return;
+      }
+
+      final uid = refreshedUser?.uid;
       if (uid == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -185,7 +267,11 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
       final role = (doc.data()?['role'] ?? 'user').toString();
 
       if (!mounted) return;
@@ -193,12 +279,12 @@ class _LoginPageState extends State<LoginPage> {
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => AdminRootPage()), // ✅ بدون const
+          MaterialPageRoute(builder: (_) => const AdminRootPage()),
         );
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomePage()), // ✅ بدون const
+          MaterialPageRoute(builder: (_) => const HomePage()),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -209,12 +295,18 @@ class _LoginPageState extends State<LoginPage> {
       if (e.code == 'wrong-password') msg = 'Wrong password provided.';
       if (e.code == 'invalid-email') msg = 'Invalid email.';
       if (e.code == 'user-disabled') msg = 'This user has been disabled.';
-      if (e.code == 'too-many-requests') msg = 'Too many attempts. Try again later.';
+      if (e.code == 'too-many-requests') {
+        msg = 'Too many attempts. Try again later.';
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

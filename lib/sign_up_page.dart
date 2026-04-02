@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'home_page.dart';
 import 'login_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -35,7 +34,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اكتبي الاسم + الإيميل + كلمة المرور')),
+        const SnackBar(
+          content: Text('Please enter name, email, and password'),
+        ),
       );
       return;
     }
@@ -43,7 +44,7 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _loading = true);
 
     try {
-      // 1) إنشاء المستخدم في Firebase Auth
+      // 1) Create user in Firebase Auth
       final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -52,54 +53,66 @@ class _SignUpPageState extends State<SignUpPage> {
       final user = cred.user!;
       final uid = user.uid;
 
-      // 2) حفظ displayName + reload (مهم عشان يتحدث فوراً)
+      // 2) Save display name
       await user.updateDisplayName(name);
-      await user.reload();
 
-      // 3) إنشاء وثيقة المستخدم في Firestore
+      // 3) Send verification email
+      await user.sendEmailVerification();
+
+      // 4) Create Firestore document
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
         'email': user.email ?? email,
-
-        // تعريف الدور: مستخدم عادي
         'role': 'user',
-
-        // تهيئة الحقول 
         'healthConditions': [],
         'personalAirAlerts': {},
-
-        // الإشعارات تكون مقفلة أول مرة
         'notificationsEnabled': false,
         'tipsEnabled': true,
-
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      // 5) Sign out until email is verified
+      await FirebaseAuth.instance.signOut();
+
       if (!mounted) return;
 
-      // الانتقال إلى صفحة الهوم بعد التسجيل
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Verification email sent. Please check your email.',
+          ),
+        ),
+      );
+
+      // 6) Navigate back to login page
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
+        MaterialPageRoute(builder: (_) => const LoginPage()),
       );
     } on FirebaseAuthException catch (e) {
-      String msg = 'فشل إنشاء الحساب';
+      String msg = 'Sign up failed. Please try again.';
 
-      if (e.code == 'weak-password') msg = 'كلمة المرور ضعيفة';
-      if (e.code == 'email-already-in-use') msg = 'الإيميل مستخدم من قبل';
-      if (e.code == 'invalid-email') msg = 'الإيميل غير صحيح';
+      if (e.code == 'weak-password') msg = 'Password is too weak';
+      if (e.code == 'email-already-in-use') msg = 'Email already in use';
+      if (e.code == 'invalid-email') msg = 'Invalid email address';
       if (e.code == 'operation-not-allowed') {
-        msg = 'Email/Password غير مفعّل في Firebase';
+        msg = 'Email/Password sign-in is not enabled in Firebase';
       }
-      if (e.code == 'network-request-failed') msg = 'مشكلة اتصال بالنت';
+      if (e.code == 'network-request-failed') msg = 'Network error';
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        const SnackBar(
+          content: Text('Something went wrong. Please try again.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -120,7 +133,8 @@ class _SignUpPageState extends State<SignUpPage> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -161,14 +175,16 @@ class _SignUpPageState extends State<SignUpPage> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: 'Password',
-                        hintStyle: TextStyle(color: greyText, fontSize: 14),
+                        hintStyle:
+                            TextStyle(color: greyText, fontSize: 14),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide:
+                              BorderSide(color: Colors.grey.shade300),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -179,7 +195,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             color: greyText,
                           ),
                           onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
+                            () =>
+                                _obscurePassword = !_obscurePassword,
                           ),
                         ),
                       ),
@@ -195,7 +212,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                                BorderRadius.circular(12),
                           ),
                           elevation: 0,
                         ),
@@ -203,7 +221,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             ? const SizedBox(
                                 width: 22,
                                 height: 22,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(
+                                        strokeWidth: 2),
                               )
                             : const Text(
                                 'Sign Up',
@@ -219,18 +239,22 @@ class _SignUpPageState extends State<SignUpPage> {
                     const SizedBox(height: 40),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Already have an Account? ',
-                          style: TextStyle(color: greyText, fontSize: 13),
+                          'Already have an account? ',
+                          style: TextStyle(
+                              color: greyText, fontSize: 13),
                         ),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const LoginPage()),
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const LoginPage()),
                             );
                           },
                           child: Text(
@@ -259,18 +283,24 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
-    TextInputType keyboardType = TextInputType.text,
+    TextInputType keyboardType =
+        TextInputType.text,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        hintStyle: TextStyle(
+            color: Colors.grey.shade500,
+            fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius:
+              BorderRadius.circular(8),
+          borderSide:
+              BorderSide(color: Colors.grey.shade300),
         ),
       ),
     );
