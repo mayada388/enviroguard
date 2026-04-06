@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'notifications_page.dart';
 
 
-// ✅ Firebase
+//  Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ✅ Admin Edit Profile Page
+//  Admin Edit Profile Page
 import 'admin_profile_page.dart';
 
 import 'report_service.dart';
@@ -22,7 +22,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   final Color primaryColor = const Color(0xFF32345F);
   final Color backgroundColor = const Color(0xFFF9F9FB);
 
-  /// ✅ عشان أول مرة يظهر Select location وبعدها يظهر المختار
+  ///  عشان أول مرة يظهر Select location وبعدها يظهر المختار
   String? _selectedLocationId; // null => Select location
 
   Future<void> _saveLocationId(User user, String locationId) async {
@@ -42,7 +42,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  // ================== دوال Forecasts (نفس حق اليوزر) ==================
+  //  دوال Forecasts (نفس حق اليوزر) 
 
   Color _colorForLevel(String level) {
     final l = level.toLowerCase();
@@ -121,7 +121,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  // ================== Placeholders (بدون بيانات قبل اختيار الموقع) ==================
+  //  Placeholders (بدون بيانات قبل اختيار الموقع)
 
   Widget _buildPlaceholders() {
     return Column(
@@ -207,7 +207,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
         const SizedBox(height: 30),
 
-        // ===== Metrological (نفس الشكل بس قيم فاضية) =====
+        //  Metrological (نفس الشكل بس قيم فاضية) 
         const _SectionTitle(
           title: 'Metrological Data',
           icon: Icons.cloud_outlined,
@@ -230,7 +230,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
         const SizedBox(height: 30),
 
-        // ===== Pollutants (نفس الشكل بس قيم فاضية) =====
+        //  Pollutants (نفس الشكل بس قيم فاضية) 
         const _SectionTitle(
           title: 'Air Pollutants Levels',
           icon: Icons.bar_chart_rounded,
@@ -256,31 +256,21 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 status: '—',
                 color: Color(0xFFB0BEC5),
               ),
+             
               _PollutantRow(
-                label: 'Ozone (O3)',
+                label: 'Carbon Dioxide (CO₂)',
                 value: '--',
                 status: '—',
                 color: Color(0xFFB0BEC5),
               ),
-              _PollutantRow(
-                label: 'Carbon Monoxide(CO)',
-                value: '--',
-                status: '—',
-                color: Color(0xFFB0BEC5),
-              ),
-              _PollutantRow(
-                label: 'Sulfer Dioxide (SO2)',
-                value: '--',
-                status: '—',
-                color: Color(0xFFB0BEC5),
-              ),
+            
             ],
           ),
         ),
 
         const SizedBox(height: 30),
 
-        // ===== Forecasts placeholder (نفس شكل الرسم لكن bars صفر) =====
+        //  Forecasts placeholder (نفس شكل الرسم لكن bars صفر) 
         const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
         const SizedBox(height: 15),
         Container(
@@ -322,14 +312,31 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   label: '--',
                 ),
               )),
+              const Padding(
+  padding: EdgeInsets.symmetric(vertical: 20),
+  child: Divider(color: Color(0xFFF1F1F1)),
+),
+const Text(
+  'Carbon Dioxide (CO₂)',
+  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+),
+const SizedBox(height: 20),
+_buildChartBackground(List.generate(
+  6,
+  (i) => const _Bar(
+    value: 0,
+    color: Color(0xFFB0BEC5),
+    label: '--',
+  ),
+)),
             ],
           ),
         ),
 
         const SizedBox(height: 30),
 
-        // ===== Download placeholder (بدون فعل) =====
-      // ===== Download (PDF) =====
+        // Download placeholder (بدون فعل) 
+      //  Download (PDF) 
 Center(
   child: Opacity(
     opacity: 0.6,
@@ -386,7 +393,7 @@ Center(
     );
   }
 
-  // ================== build ==================
+  //  build 
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +412,7 @@ Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ================== 1) HEADER (زي تصميمك) ==================
+              // ================== HEADER  ==================
               StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance
                     .collection('users')
@@ -530,7 +537,7 @@ Center(
                                             ? _selectedLocationId
                                             : null;
 
-                                    // ✅ Responsive dropdown
+                                    // Responsive dropdown
                                     return Flexible(
                                       child: ConstrainedBox(
                                         constraints: const BoxConstraints(maxWidth: 180),
@@ -609,11 +616,11 @@ Center(
 
               const SizedBox(height: 25),
 
-              // ✅ لو ما اختار موقع: اعرض نفس الأقسام لكن بدون بيانات
+              //  لو ما اختار موقع: اعرض نفس الأقسام لكن بدون بيانات
               if (_selectedLocationId == null) ...[
                 _buildPlaceholders(),
               ] else ...[
-                // ================== 2) Air Quality Card (من Firestore) ==================
+                //  Air Quality Card (من Firestore) 
                 StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance
                       .collection('air_quality_data')
@@ -727,7 +734,7 @@ Center(
 
                         const SizedBox(height: 30),
 
-                        // ================== 3) Metrological Data (ثابتة زي كودك) ==================
+                        //  Metrological Data (ثابتة ) 
                         const _SectionTitle(
                           title: 'Metrological Data',
                           icon: Icons.cloud_outlined,
@@ -750,7 +757,7 @@ Center(
 
                         const SizedBox(height: 30),
 
-                        // ================== 4) Air Pollutants Levels (ثابتة زي كودك) ==================
+                        //  Air Pollutants Levels (ثابتة) 
                         const _SectionTitle(
                           title: 'Air Pollutants Levels',
                           icon: Icons.bar_chart_rounded,
@@ -777,20 +784,8 @@ Center(
                                 color: Color(0xFFE9B35F),
                               ),
                               _PollutantRow(
-                                label: 'Ozone (O3)',
-                                value: '19.4',
-                                status: 'Good',
-                                color: Colors.green,
-                              ),
-                              _PollutantRow(
-                                label: 'Carbon Monoxide(CO)',
+                                label: 'Carbon Dioxide (CO₂)',
                                 value: '3.3',
-                                status: 'Good',
-                                color: Colors.green,
-                              ),
-                              _PollutantRow(
-                                label: 'Sulfer Dioxide (SO2)',
-                                value: '1.5',
                                 status: 'Good',
                                 color: Colors.green,
                               ),
@@ -800,80 +795,103 @@ Center(
 
                         const SizedBox(height: 30),
 
-                        // ================== 5) Forecasts (من Firestore) ==================
+                        //   Forecasts (من Firestore) 
                         const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
-                        const SizedBox(height: 15),
+const SizedBox(height: 15),
 
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                          stream: FirebaseFirestore.instance
-                              .collection('predictions')
-                              .doc(_selectedLocationId)
-                              .snapshots(),
-                          builder: (context, predSnap) {
-                            if (!predSnap.hasData || predSnap.data?.data() == null) {
-                              // بدل ما نقول no data، نخلي الشكل موجود
-                              return Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'No forecast data available.',
-                                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
-                                ),
-                              );
-                            }
+StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+  stream: FirebaseFirestore.instance
+      .collection('predictions')
+      .doc(_selectedLocationId)
+      .snapshots(),
+  builder: (context, predSnap) {
+    if (!predSnap.hasData || predSnap.data?.data() == null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(
+          child: Text(
+            'No forecast data available.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
+      );
+    }
 
-                            final predData = predSnap.data!.data()!;
-                            final pm25List =
-                                (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
-                            final pm10List =
-                                (predData['pm10Forecast'] as List<dynamic>?) ?? [];
+    final predData = predSnap.data!.data()!;
 
-                            final pm25Bars = _barsFromForecast(pm25List);
-                            final pm10Bars = _barsFromForecast(pm10List);
+    final pm25List =
+        (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
 
-                            return Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Particulate Matter 2.5',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _buildChartBackground(pm25Bars),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Divider(color: Color(0xFFF1F1F1)),
-                                  ),
-                                  const Text(
-                                    'Particulate Matter 10',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _buildChartBackground(pm10Bars),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+    final pm10List =
+        (predData['pm10Forecast'] as List<dynamic>?) ?? [];
 
-                        const SizedBox(height: 30),
+    final co2List =
+        (predData['co2Forecast'] as List<dynamic>?) ?? [];
+
+    final pm25Bars = _barsFromForecast(pm25List);
+    final pm10Bars = _barsFromForecast(pm10List);
+    final co2Bars = _barsFromForecast(co2List);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Particulate Matter 2.5',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildChartBackground(pm25Bars),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(color: Color(0xFFF1F1F1)),
+          ),
+
+          const Text(
+            'Particulate Matter 10',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildChartBackground(pm10Bars),
+
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(color: Color(0xFFF1F1F1)),
+          ),
+
+          const Text(
+            'Carbon Dioxide (CO₂)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildChartBackground(co2Bars),
+        ],
+      ),
+    );
+  },
+),
+
+const SizedBox(height: 30),
+
 Center(
   child: InkWell(
     onTap: () async {
@@ -884,7 +902,7 @@ Center(
         return;
       }
 
-      // جلب اسم الموقع الحقيقي
+      // جلب اسم الموقع 
       final locDoc = await FirebaseFirestore.instance
           .collection('locations')
           .doc(_selectedLocationId)
@@ -935,7 +953,7 @@ Center(
   }
 }
 
-// ================== Widgets Helper ==================
+//  Widgets Helper
 
 class _HeaderIcon extends StatelessWidget {
   final IconData icon;

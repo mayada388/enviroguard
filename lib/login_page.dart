@@ -109,7 +109,6 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 32),
-
               _buildInputField(
                 label: 'E-mail',
                 hint: 'Enter your email',
@@ -122,9 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 20),
-
               _buildInputField(
                 label: 'Password',
                 hint: 'Enter your password',
@@ -140,9 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 8),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -156,9 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -187,9 +180,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                 ),
               ),
-
               const SizedBox(height: 8),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -291,11 +282,18 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       String msg = 'Login failed. Please try again.';
-      if (e.code == 'user-not-found') msg = 'No user found for that email.';
-      if (e.code == 'wrong-password') msg = 'Wrong password provided.';
-      if (e.code == 'invalid-email') msg = 'Invalid email.';
-      if (e.code == 'user-disabled') msg = 'This user has been disabled.';
-      if (e.code == 'too-many-requests') {
+
+      if (e.code == 'user-not-found') {
+        msg = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        msg = 'Wrong password provided.';
+      } else if (e.code == 'invalid-email') {
+        msg = 'Invalid email.';
+      } else if (e.code == 'invalid-credential') {
+        msg = 'Invalid email or password.';
+      } else if (e.code == 'user-disabled') {
+        msg = 'This user has been disabled.';
+      } else if (e.code == 'too-many-requests') {
         msg = 'Too many attempts. Try again later.';
       }
 

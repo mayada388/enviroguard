@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool notificationsEnabled = false;
 
-  // ✅ أول مرة يظهر Select location وبعدها يظهر المختار
+  //  أول مرة يظهر Select location وبعدها يظهر المختار
   String? _selectedLocationId;
 
   @override
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // ================== Helpers (Colors/Forecast Bars) ==================
+  //  Helpers (Colors/Forecast Bars) 
 
   Color _colorForLevel(String level) {
     final l = level.toLowerCase();
@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ✅ Placeholder values (بدون موقع)
+  //  Placeholder values (بدون موقع)
   Widget _placeholderAirQualityCard(Color primaryColor) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -174,7 +174,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ================== build ==================
+  // build
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
       return const Scaffold(body: Center(child: Text('Not logged in')));
     }
 
-    // ✅ نقرأ user doc مرة واحدة فقط
+    //  نقرأ user doc مرة واحدة فقط
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -205,7 +205,7 @@ class _HomePageState extends State<HomePage> {
               });
             }
 
-            // ✅ stream لبيانات الموقع (إذا فيه locationId)
+            //  stream لبيانات الموقع (إذا فيه locationId)
             final Stream<DocumentSnapshot<Map<String, dynamic>>>? aqStream =
                 (locationId == null)
                     ? null
@@ -217,7 +217,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ================== HEADER + Dropdown ==================
+                  //  HEADER + Dropdown 
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -376,7 +376,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 25),
 
-                  // ================== Air Quality Card (Firestore OR --) ==================
+                  //  Air Quality Card (Firestore OR --)
                   if (aqStream == null)
                     _placeholderAirQualityCard(primaryColor)
                   else
@@ -468,7 +468,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 30),
 
-                  // ================== Metrological Data (Firestore OR --) ==================
+                  //  Metrological Data (Firestore OR --) 
                   const _SectionTitle(title: 'Metrological Data', icon: Icons.cloud_outlined),
                   const SizedBox(height: 15),
 
@@ -513,7 +513,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 30),
 
-                  // ================== Air Pollutants Levels (Firestore OR --) ==================
+                  //  Air Pollutants Levels (Firestore OR --) 
                   const _SectionTitle(title: 'Air Pollutants Levels', icon: Icons.bar_chart_rounded),
                   const SizedBox(height: 15),
 
@@ -525,18 +525,14 @@ class _HomePageState extends State<HomePage> {
                       // defaults
                       String vPm25 = '--', sPm25 = '--'; Color cPm25 = const Color(0xFFB0BEC5);
                       String vPm10 = '--', sPm10 = '--'; Color cPm10 = const Color(0xFFB0BEC5);
-                      String vO3 = '--', sO3 = '--';     Color cO3 = const Color(0xFFB0BEC5);
-                      String vCO = '--', sCO = '--';     Color cCO = const Color(0xFFB0BEC5);
-                      String vSO2 = '--', sSO2 = '--';   Color cSO2 = const Color(0xFFB0BEC5);
+                      String vCO2 = '--', sCO2 = '--';     Color cCO2 = const Color(0xFFB0BEC5);
 
                       Map<String, dynamic>? _asMap(dynamic x) => (x is Map<String, dynamic>) ? x : null;
 
                       if (pol != null) {
                         final pm25 = _asMap(pol['pm25']);
                         final pm10 = _asMap(pol['pm10']);
-                        final o3 = _asMap(pol['o3']);
-                        final co = _asMap(pol['co']);
-                        final so2 = _asMap(pol['so2']);
+                        final co2 = _asMap(pol['CO₂']);
 
                         if (pm25 != null) {
                           vPm25 = (pm25['value'] ?? '--').toString();
@@ -548,20 +544,10 @@ class _HomePageState extends State<HomePage> {
                           sPm10 = (pm10['level'] ?? '--').toString();
                           cPm10 = _colorForLevel(sPm10);
                         }
-                        if (o3 != null) {
-                          vO3 = (o3['value'] ?? '--').toString();
-                          sO3 = (o3['level'] ?? '--').toString();
-                          cO3 = _colorForLevel(sO3);
-                        }
-                        if (co != null) {
-                          vCO = (co['value'] ?? '--').toString();
-                          sCO = (co['level'] ?? '--').toString();
-                          cCO = _colorForLevel(sCO);
-                        }
-                        if (so2 != null) {
-                          vSO2 = (so2['value'] ?? '--').toString();
-                          sSO2 = (so2['level'] ?? '--').toString();
-                          cSO2 = _colorForLevel(sSO2);
+                        if (co2 != null) {
+                          vCO2 = (co2['value'] ?? '--').toString();
+                          sCO2 = (co2['level'] ?? '--').toString();
+                          cCO2 = _colorForLevel(sCO2);
                         }
                       }
 
@@ -572,9 +558,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _PollutantRow(label: 'Particulate Matter 2.5', value: vPm25, status: sPm25, color: cPm25),
                             _PollutantRow(label: 'Particulate Matter 10', value: vPm10, status: sPm10, color: cPm10),
-                            _PollutantRow(label: 'Ozone (O3)', value: vO3, status: sO3, color: cO3),
-                            _PollutantRow(label: 'Carbon Monoxide (CO)', value: vCO, status: sCO, color: cCO),
-                            _PollutantRow(label: 'Sulfur Dioxide (SO2)', value: vSO2, status: sSO2, color: cSO2),
+                            _PollutantRow(label: 'Carbon Monoxide (CO₂)', value: vCO2, status: sCO2, color: cCO2),
                           ],
                         ),
                       );
@@ -583,83 +567,249 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 30),
 
-                  // ================== Forecasts (Firestore OR Placeholder) ==================
-                  const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
-                  const SizedBox(height: 15),
+                  //  Forecasts (Firestore OR Placeholder) 
+                 const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
+const SizedBox(height: 15),
 
-                  if (locationId == null)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Particulate Matter 2.5', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 20),
-                          _buildChartBackground(List.generate(6, (_) => const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--'))),
-                          const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(color: Color(0xFFF1F1F1))),
-                          const Text('Particulate Matter 10', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 20),
-                          _buildChartBackground(List.generate(6, (_) => const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--'))),
-                        ],
-                      ),
-                    )
-                  else
-                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance.collection('predictions').doc(locationId).snapshots(),
-                      builder: (context, predSnap) {
-                        if (!predSnap.hasData || predSnap.data?.data() == null) {
-                          // نخلي الشكل موجود حتى لو مافيه بيانات
-                          return Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Particulate Matter 2.5', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                                const SizedBox(height: 20),
-                                _buildChartBackground(List.generate(6, (_) => const _Bar(value: 0, color:  Color(0xFFB0BEC5), label: '--'))),
-                                const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(color: Color(0xFFF1F1F1))),
-                                const Text('Particulate Matter 10', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                                const SizedBox(height: 20),
-                                _buildChartBackground(List.generate(6, (_) => const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--'))),
-                              ],
-                            ),
-                          );
-                        }
+if (locationId == null)
+  Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Particulate Matter 2.5',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 20),
+        _buildChartBackground(
+          List.generate(
+            6,
+            (_) => const _Bar(
+              value: 0,
+              color: Color(0xFFB0BEC5),
+              label: '--',
+            ),
+          ),
+        ),
 
-                        final predData = predSnap.data!.data()!;
-                        final pm25List = (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
-                        final pm10List = (predData['pm10Forecast'] as List<dynamic>?) ?? [];
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Divider(color: Color(0xFFF1F1F1)),
+        ),
 
-                        final pm25Bars = pm25List.isEmpty
-                            ? List.generate(6, (_) => const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--'))
-                            : _barsFromForecast(pm25List);
+        const Text(
+          'Particulate Matter 10',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 20),
+        _buildChartBackground(
+          List.generate(
+            6,
+            (_) => const _Bar(
+              value: 0,
+              color: Color(0xFFB0BEC5),
+              label: '--',
+            ),
+          ),
+        ),
 
-                        final pm10Bars = pm10List.isEmpty
-                            ? List.generate(6, (_) => const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--'))
-                            : _barsFromForecast(pm10List);
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Divider(color: Color(0xFFF1F1F1)),
+        ),
 
-                        return Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Particulate Matter 2.5', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 20),
-                              _buildChartBackground(pm25Bars),
-                              const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(color: Color(0xFFF1F1F1))),
-                              const Text('Particulate Matter 10', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 20),
-                              _buildChartBackground(pm10Bars),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+        const Text(
+          'Carbon Dioxide (CO2)',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 20),
+        _buildChartBackground(
+          List.generate(
+            6,
+            (_) => const _Bar(
+              value: 0,
+              color: Color(0xFFB0BEC5),
+              label: '--',
+            ),
+          ),
+        ),
+      ],
+    ),
+  )
+else
+  StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+    stream: FirebaseFirestore.instance
+        .collection('predictions')
+        .doc(locationId)
+        .snapshots(),
+    builder: (context, predSnap) {
+      if (!predSnap.hasData || predSnap.data?.data() == null) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Particulate Matter 2.5',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (_) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
 
-                  const SizedBox(height: 30),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(color: Color(0xFFF1F1F1)),
+              ),
+
+              const Text(
+                'Particulate Matter 10',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (_) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(color: Color(0xFFF1F1F1)),
+              ),
+
+              const Text(
+                'Carbon Dioxide (CO2)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (_) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final predData = predSnap.data!.data()!;
+
+      final pm25List =
+          (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
+
+      final pm10List =
+          (predData['pm10Forecast'] as List<dynamic>?) ?? [];
+
+      final co2List =
+          (predData['co2Forecast'] as List<dynamic>?) ?? [];
+
+      final pm25Bars = pm25List.isEmpty
+          ? List.generate(
+              6,
+              (_) => const _Bar(
+                value: 0,
+                color: Color(0xFFB0BEC5),
+                label: '--',
+              ),
+            )
+          : _barsFromForecast(pm25List);
+
+      final pm10Bars = pm10List.isEmpty
+          ? List.generate(
+              6,
+              (_) => const _Bar(
+                value: 0,
+                color: Color(0xFFB0BEC5),
+                label: '--',
+              ),
+            )
+          : _barsFromForecast(pm10List);
+
+      final co2Bars = co2List.isEmpty
+          ? List.generate(
+              6,
+              (_) => const _Bar(
+                value: 0,
+                color: Color(0xFFB0BEC5),
+                label: '--',
+              ),
+            )
+          : _barsFromForecast(co2List);
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Particulate Matter 2.5',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 20),
+            _buildChartBackground(pm25Bars),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(color: Color(0xFFF1F1F1)),
+            ),
+
+            const Text(
+              'Particulate Matter 10',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 20),
+            _buildChartBackground(pm10Bars),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(color: Color(0xFFF1F1F1)),
+            ),
+
+            const Text(
+              'Carbon Dioxide (CO2)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 20),
+            _buildChartBackground(co2Bars),
+          ],
+        ),
+      );
+    },
+  ),
+
+const SizedBox(height: 30),
 
                   Center(
                     child: InkWell(
@@ -718,7 +868,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// ================== Helper Widgets ==================
+//  Helper Widgets 
 
 class _HeaderIcon extends StatelessWidget {
   final IconData icon;
