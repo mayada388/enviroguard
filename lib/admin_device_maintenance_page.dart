@@ -4,11 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AdminDeviceMaintenancePage extends StatelessWidget {
   const AdminDeviceMaintenancePage({super.key});
 
-  // اسم الكوليكشن
   CollectionReference<Map<String, dynamic>> get _devicesRef =>
       FirebaseFirestore.instance.collection('devices');
 
-  // تنسيق التاريخ
+  
   String _formatTimestamp(dynamic value) {
     if (value == null) return 'Never';
 
@@ -30,7 +29,7 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
     return '$y-$m-$d  $hh:$mm';
   }
 
-  // تحويل الحالة ON / OFF
+ 
   bool _isOn(dynamic status) {
     if (status is bool) return status;
     final s = (status ?? '').toString().toLowerCase();

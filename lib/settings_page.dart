@@ -119,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ===== Notifications =====
+              //  Notifications 
               Text(
                 'Notifications',
                 style: TextStyle(
@@ -148,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 24),
 
-              // ===== Apps =====
+              //  Apps 
               Text(
                 'Apps',
                 style: TextStyle(
@@ -223,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ===== Card Container =====
+  //  Card Container 
   Widget _settingsCard({required Widget child}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -242,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ===== Clickable Tile =====
+  //  Clickable Tile 
   Widget _settingsTile({
     required String title,
     required VoidCallback onTap,

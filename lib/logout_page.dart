@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // ✅ مهم
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'login_page.dart'; 
 
 class LogoutPage extends StatelessWidget {
@@ -45,7 +45,7 @@ class LogoutPage extends StatelessWidget {
                     // تسجيل خروج من Firebase
                     await FirebaseAuth.instance.signOut();
 
-                    // بعدين نروح لصفحة اللوج إن ونمسح كل الصفحات اللي قبلها
+                    // بعدين نروح لصفحه تسجيل الدخول ونمسح كل الصفحات اللي قبلها
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginPage()),

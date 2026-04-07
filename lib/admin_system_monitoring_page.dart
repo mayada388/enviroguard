@@ -33,12 +33,12 @@ class AdminSystemMonitoringPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ========= Edge Device Card =========
+              // Edge Device Card 
               _buildEdgeDeviceCard(),
 
               const SizedBox(height: 10),
 
-              // ========= Sensors =========
+              //  Sensors 
               const Text(
                 'Sensors',
                 style: TextStyle(
@@ -52,7 +52,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ========= Alert Logs =========
+              // Alert Logs 
               const Text(
                 'Alert Logs',
                 style: TextStyle(
@@ -70,12 +70,12 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  // ==================== EDGE DEVICE CARD ====================
+  //  EDGE DEVICE CARD 
   Widget _buildEdgeDeviceCard() {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('edge_devices')
-          .doc('raspberry') // <-- نفس اسم document عندك
+          .doc('raspberry') 
           .snapshots(),
       builder: (context, snapshot) {
         String statusText = 'Loading...';
@@ -150,7 +150,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  // ==================== SENSORS TABLE ====================
+  //  SENSORS TABLE 
   Widget _buildSensorsTable() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -215,7 +215,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
                 rows: docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
 
-                  final sensorId = doc.id; // مثل SEN-001
+                  final sensorId = doc.id; 
                   final sensorType = (data['sensorType'] ?? '').toString();
                   final status = (data['status'] ?? '').toString();
                   final location =
@@ -258,7 +258,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  // ==================== ALERTS TABLE ====================
+  //  ALERTS TABLE 
   Widget _buildAlertsTable() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -338,11 +338,11 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  // ==================== HELPERS ====================
+  // HELPERS 
   static String _formatTime(dynamic value) {
     if (value == null) return '-';
 
-    // لو Timestamp من Firestore
+    
     if (value is Timestamp) {
       final dt = value.toDate();
       int hour = dt.hour;
@@ -356,7 +356,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
       return '$hour:$minute $period';
     }
 
-    // لو String جاهز
+    
     if (value is String) {
       return value;
     }

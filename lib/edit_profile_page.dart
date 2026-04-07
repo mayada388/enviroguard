@@ -29,7 +29,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   User? get _user => FirebaseAuth.instance.currentUser;
 
-  /// ================= HEALTH CONDITIONS =================
+  ///  HEALTH CONDITIONS 
   final List<String> _conditions = [
     "Asthma",
     "COPD",
@@ -45,7 +45,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   final Set<String> _selectedConditions = {};
 
-  /// ================= PERSONAL ALERTS =================
+  ///  PERSONAL ALERTS 
   final List<String> _pollutantAlerts = [
     "PM2_5",
     "PM10",
@@ -108,7 +108,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  /// ================= OTHER SETTINGS =================
+  ///  OTHER SETTINGS 
   bool _quietHours = false;
   bool _tips = true;
 
@@ -140,7 +140,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return TimeOfDay(hour: h, minute: m);
   }
 
-  // ================= IMAGE HELPERS =================
+  //  IMAGE HELPERS 
 
   Future<void> _pickImage() async {
     final x = await _picker.pickImage(
@@ -203,7 +203,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // ================= LOAD / SAVE =================
+  //  LOAD / SAVE 
 
   Future<void> _loadProfileFromFirestore() async {
     final user = _user;
@@ -346,7 +346,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // ================= UI =================
+  
 
   @override
   Widget build(BuildContext context) {
@@ -381,7 +381,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               key: _formKey,
               child: Column(
                 children: [
-                  // ✅ AVATAR فوق (نفس الادمن)
+                  //  AVATAR فوق (نفس الادمن)
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -688,7 +688,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           const SizedBox(height: 8),
 
-          // ✅ يظهر دايم من البداية
+          
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -731,7 +731,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             final newPass = newPassCtrl.text.trim();
             final confirmPass = confirmNewPassCtrl.text.trim();
 
-            // ✅ تحقق قبل أي شي
+            
             if (newPass.isEmpty || confirmPass.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Please fill all fields")),
@@ -750,7 +750,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               final user = FirebaseAuth.instance.currentUser;
               if (user == null) return;
 
-              // ✅ re-auth باستخدام الباسورد القديم
+              //  باستخدام الباسورد القديم
               final cred = EmailAuthProvider.credential(
                 email: user.email!,
                 password: currentPassCtrl.text.trim(),
@@ -758,7 +758,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
               await user.reauthenticateWithCredential(cred);
 
-              // ✅ تحديث الباسورد
+              //  تحديث الباسورد
               await user.updatePassword(newPass);
 
               if (!mounted) return;

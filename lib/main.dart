@@ -28,12 +28,12 @@ class EnviroGuard extends StatelessWidget {
         primaryColor: const Color(0xFF32345F),
         fontFamily: 'Roboto',
       ),
-      home: const AuthGate(), //  بدّلنا WelcomePage إلى AuthGate
+      home: const AuthGate(), 
     );
   }
 }
 
-/// يقرر يودي المستخدم فين
+
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -52,19 +52,19 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // لسه يتصل بـ Firebase
+        
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // ما فيه مستخدم → نرجع لشاشة الترحيب
+        
         if (!snapshot.hasData) {
           return const WelcomePage();
         }
 
-        // فيه مستخدم → نشوف هل هو admin أو user
+        
         final user = snapshot.data!;
         return FutureBuilder<String>(
           future: _checkRole(user.uid),

@@ -98,24 +98,24 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     setState(() => _removing = true);
 
     try {
-      // 1) حذف من Storage (لو موجود)
+      
       final ref = FirebaseStorage.instance
           .ref()
           .child('admin_profiles')
           .child('${user.uid}.jpg');
 
-      // delete() قد يرمي خطأ لو الملف غير موجود، فبنمسكه
+      
       try {
         await ref.delete();
       } catch (_) {}
 
-      // 2) حذف الرابط من Firestore
+      
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'photoUrl': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // 3) حذف الصورة المختارة محليًا
+      
       if (mounted) {
         setState(() {
           _pickedImage = null;
@@ -170,7 +170,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
           final savedName = (data?['name'] ?? '').toString().trim();
           final savedPhotoUrl = (data?['photoUrl'] ?? '').toString().trim();
 
-          // لا تعبي الاسم كل مرة (بس أول مرة لو الفيلد فاضي)
+          
           if (_nameController.text.isEmpty && savedName.isNotEmpty) {
             _nameController.text = savedName;
           }

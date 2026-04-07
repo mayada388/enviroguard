@@ -25,8 +25,7 @@ class _AdminAddAdminPageState extends State<AdminAddAdminPage> {
   }
 
   Future<String?> _fetchAdminCodeFromFirestore() async {
-    // ✅ مكان حفظ الكود في Firestore:
-    // settings/app -> { adminCode: "123456" }
+    
     final doc = await FirebaseFirestore.instance
         .collection('settings')
         .doc('app')
@@ -38,8 +37,7 @@ class _AdminAddAdminPageState extends State<AdminAddAdminPage> {
   }
 
   Future<void> _addAdminInvite(String email) async {
-    // ✅ نخزن طلب إضافة أدمن
-    // admin_invites/{emailLower} -> { email, createdAt, enabled }
+  
     final emailLower = email.trim().toLowerCase();
 
     await FirebaseFirestore.instance

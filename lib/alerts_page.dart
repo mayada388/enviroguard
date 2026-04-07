@@ -31,7 +31,7 @@ class _AlertsPageState extends State<AlertsPage> {
     if (!mounted) return;
 
     if (enabled) {
-      // ✅ يروح للهوم ويشيل الترحيب/أي صفحات قبل
+      
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),

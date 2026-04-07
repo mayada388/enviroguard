@@ -24,8 +24,8 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
 
   // Delete controllers
   final _delSensorId = TextEditingController();
-  final _delSensorType = TextEditingController(); // optional (UI only)
-  final _delLocationId = TextEditingController(); // optional (UI only)
+  final _delSensorType = TextEditingController(); 
+  final _delLocationId = TextEditingController(); 
 
   @override
   void dispose() {
@@ -53,9 +53,9 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
 
     try {
       await _sensorsRef.doc(sensorId).set({
-        'deviceId': 'raspberry', // خليها ثابتة الآن أو اربطيها بواجهة لاحقًا
+        'deviceId': 'raspberry', 
         'locationId': locationId,
-        'sensorName': '', // اختياري
+        'sensorName': '', 
         'sensorType': sensorType,
         'status': 'Active', // default
         'lastUpdate': FieldValue.serverTimestamp(),
@@ -92,7 +92,7 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
       return;
     }
 
-    // always refresh lastUpdate when admin updates
+    
     updates['lastUpdate'] = FieldValue.serverTimestamp();
 
     try {
@@ -120,7 +120,7 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
       _delSensorType.clear();
       _delLocationId.clear();
 
-      // لو كان هو المحدد في التحديث، فضّيه
+      
       if (_selectedSensorId == sensorId) {
         setState(() => _selectedSensorId = null);
       }

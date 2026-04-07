@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart'; // واجهات Flutter
-import 'package:firebase_auth/firebase_auth.dart'; // تسجيل الدخول ومعرفة اليوزر الحالي
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore قراءة/كتابة
+import 'package:flutter/material.dart'; 
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 
-// صفحة التنبيهات
+
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
@@ -17,16 +17,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
   // الملوثات اللي بنولد لها تنبيهات (لازم تكون نفس doc IDs في thresholds و alert_templates)
   static const List<String> pollutantIds = ['PM2_5', 'PM10', 'O3', 'CO', 'SO2'];
 
-  // ====== زر توليد التنبيهات (بديل عن Cloud Functions) ======
+  //  زر توليد التنبيهات (بديل عن Cloud Functions) 
   Future<void> _generateAlertsForAllUsers() async {
     if (_isGenerating) return; // إذا شغال لا تعيد
 
-    setState(() => _isGenerating = true); // فعّل Loading
+    setState(() => _isGenerating = true); 
 
     try {
-      final firestore = FirebaseFirestore.instance; // مرجع Firestore
+      final firestore = FirebaseFirestore.instance; 
 
-      // 1) نجيب كل اليوزرز
+      // نجيب كل اليوزرز
       final usersSnap = await firestore.collection('users').get(); // قراءة كل المستخدمين
 
       if (usersSnap.docs.isEmpty) {
@@ -37,15 +37,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return;
       }
 
-      // 2) كاش للـ thresholds (عشان ما نقرأها لكل يوزر)
+      // كاش للـ thresholds (عشان ما نقرأها لكل يوزر)
       final Map<String, Map<String, dynamic>> thresholdsByPid = {}; // thresholds لكل pollutantId
       for (final pid in pollutantIds) {
         final thDoc = await firestore.collection('thresholds').doc(pid).get(); // thresholds/{pid}
         final th = thDoc.data(); // بيانات الثريش هولد
-        if (th != null) thresholdsByPid[pid] = th; // خزّنها بالكاش
+        if (th != null) thresholdsByPid[pid] = th; 
       }
 
-      // 3) كاش للـ templates (عشان ما نقرأها لكل alert)
+      //كاش للـ templates (عشان ما نقرأها لكل alert)
       final Map<String, Map<String, dynamic>> templateCache = {}; // templateCache[docId] = data
       Future<Map<String, dynamic>> getTemplate(String pid, String level) async {
         final docId = '${pid}_${level.toLowerCase()}'; // مثال: PM2_5_unhealthy
@@ -56,10 +56,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return data; // رجع
       }
 
-      // 4) كاش لبيانات الهواء لكل Location (عشان لو 50 يوزر بنفس اللوكيشن ما نكرر القراءة)
+      //  كاش لبيانات الهواء لكل Location (عشان لو 50 يوزر بنفس اللوكيشن ما نكرر القراءة)
       final Map<String, Map<String, dynamic>?> airCache = {}; // airCache[locationId] = air_quality_data doc
 
-      // 5) نجهز batch (أفضل من writes كثيرة)
+      //  نجهز batch (أفضل من writes كثيرة)
       final batch = firestore.batch(); // Batch write
 
       int created = 0; // عدد alerts المتولدة
@@ -67,13 +67,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       int skippedNoLocation = 0; // يوزر ما عنده locationId
       int skippedNoAirDoc = 0; // location ما لها air doc
 
-      // 6) نمشي على كل يوزر
+      //  نمشي على كل يوزر
       for (final u in usersSnap.docs) {
         final userUid = u.id; // uid = docId للـ users
         final uData = u.data(); // بيانات اليوزر
         final locationId = (uData['locationId'] ?? '').toString(); // locationId من users
 
-        // ================== Quiet Hours (ساعات الهدوء) ==================
+        //  Quiet Hours 
 // لو quietHours enabled والوقت الحالي داخل الفترة -> لا نولد تنبيهات لهذا اليوزر الآن
 
 final qh = uData['quietHours'];
@@ -135,7 +135,7 @@ final quietEnd   = _readTime(qh['end']);
   }
 }
 }
-// ================== End Quiet Hours ==================
+//  End Quiet Hours 
 
 
 
@@ -145,7 +145,7 @@ final quietEnd   = _readTime(qh['end']);
           continue;
         }
 
-        // 6.1) نقرأ air_quality_data/{locationId} (من الكاش أو من Firestore)
+        //  نقرأ air_quality_data/{locationId} (من الكاش أو من Firestore)
         Map<String, dynamic>? air;
         if (airCache.containsKey(locationId)) {
           air = airCache[locationId]; // رجع من الكاش
@@ -161,14 +161,14 @@ final quietEnd   = _readTime(qh['end']);
           continue;
         }
 
-        // 6.2) نقرأ alertState الحالي للمنع من التكرار
+        //  نقرأ alertState الحالي للمنع من التكرار
         final Map<String, dynamic> alertState =
             (uData['alertState'] is Map) ? Map<String, dynamic>.from(uData['alertState']) : {}; // alertState كامل
 
         final Map<String, dynamic> locState =
             (alertState[locationId] is Map) ? Map<String, dynamic>.from(alertState[locationId]) : {}; // alertState الخاص باللوكيشن
 
-        // 6.3) لكل ملوث
+        //  لكل ملوث
         for (final pid in pollutantIds) {
 
   // التفضيلات الشخصية
@@ -180,25 +180,25 @@ final quietEnd   = _readTime(qh['end']);
     }
   }
 
-  // 1) اقرأ القيمة من air_quality_data
+  //  اقرأ القيمة من air_quality_data
 final value = _toDouble(air[pid]);
 if (value == null) continue;
 
-// 2) اقرأ thresholds الخاصة بالـ pid
+//  اقرأ thresholds الخاصة بالـ pid
 final th = thresholdsByPid[pid];
 if (th == null) continue;
 
-// 3) احسب مستوى التنبيه (Moderate / Unhealthy / null)
+//  احسب مستوى التنبيه (Moderate / Unhealthy / null)
 final level = _computeLevel(value, th);
 if (level == null) continue; // طبيعي -> لا تنبيه
 
-// 4) اقرأ آخر level مخزن (عشان منع التكرار)
+//  اقرأ آخر level مخزن (عشان منع التكرار)
 final Map<String, dynamic> pidState =
     (locState[pid] is Map) ? Map<String, dynamic>.from(locState[pid]) : {};
 
 final lastLevel = (pidState['level'] ?? '').toString();
 
-// 5) منع التكرار: إذا نفس المستوى السابق لا نرسل
+//  منع التكرار: إذا نفس المستوى السابق لا نرسل
 if (lastLevel.toLowerCase() == level.toLowerCase()) {
   skippedSameLevel++;
   continue;
@@ -220,7 +220,7 @@ if (lastLevel.toLowerCase() == level.toLowerCase()) {
             'alertLevel': level, // Moderate / Unhealthy
             'title': title, // عنوان من template
             'message': message, // رسالة من template
-            'timestamp': Timestamp.now(), // مهم جدًا: يظهر فورًا في UI
+            'timestamp': Timestamp.now(), 
           });
 
           // حدّث alertState عند اليوزر (عشان منع التكرار المرة الجاية)
@@ -245,10 +245,10 @@ if (lastLevel.toLowerCase() == level.toLowerCase()) {
         }
       }
 
-      // 7) نفذ كل الكتابات مرة وحدة
+      //  نفذ كل الكتابات مرة وحدة
       await batch.commit(); // commit للـ batch
 
-      // 8) رسالة نجاح
+      //  رسالة نجاح
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -503,7 +503,7 @@ if (lastLevel.toLowerCase() == level.toLowerCase()) {
                               titleColor: colors.titleColor, // لون العنوان
                               time: _formatTime(ts), // الوقت
                               onDelete: () async {
-                                // ✅ زر حذف للتجربة فقط — احذفيه لاحقًا
+                                //زر حذف للتجربةا
                                 await FirebaseFirestore.instance.collection('alerts').doc(doc.id).delete();
                               },
                             ),
@@ -634,7 +634,7 @@ class _NotificationCard extends StatelessWidget {
 
                       const SizedBox(width: 6), // مسافة
 
-                      // ✅ زر حذف للتجربة فقط (احذفيه لاحقًا)
+                      //  زر حذف للتجربة فقط 
                       IconButton(
                         onPressed: () => onDelete(), // حذف
                         icon: const Icon(Icons.delete_outline, size: 18), // أيقونة

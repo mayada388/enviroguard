@@ -9,10 +9,10 @@ class AdminSetThresholdsPage extends StatefulWidget {
 }
 
 class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
-  // ====== Firestore ======
+  
   final _db = FirebaseFirestore.instance;
 
-  // كل عنصر: label للواجهة + docId في فايرستور
+  
   final List<_PollutantItem> _items = const [
     _PollutantItem(label: 'O₃ Limit', docId: 'O3'),
     _PollutantItem(label: 'SO₂ Limit', docId: 'SO2'),
@@ -21,7 +21,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
     _PollutantItem(label: 'PM2.5 Limit', docId: 'PM2_5'),
   ];
 
-  // Controllers لكل دوكمنت
+  
   final Map<String, TextEditingController> _safeCtrl = {};
   final Map<String, TextEditingController> _moderateCtrl = {};
 
@@ -53,7 +53,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
     setState(() => _loading = true);
 
     try {
-      // نقرأ كل الدوكمينتس (بالأسماء اللي عندك)
+      
       for (final it in _items) {
         final doc = await _db.collection('thresholds').doc(it.docId).get();
         final data = doc.data() ?? {};
@@ -91,7 +91,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
         final safeVal = _toDouble(_safeCtrl[it.docId]!.text);
         final modVal = _toDouble(_moderateCtrl[it.docId]!.text);
 
-        // اختياري: تحقق بسيط
+        
         if (safeVal == null || modVal == null) {
           throw 'Please fill max_safe and max_moderate for ${it.label}';
         }
@@ -101,7 +101,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
 
         final ref = _db.collection('thresholds').doc(it.docId);
 
-        // Merge عشان ما نمسح حقول ثانية لو موجودة
+        
         batch.set(ref, {
           'max_safe': safeVal,
           'max_moderate': modVal,
@@ -222,7 +222,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
     );
   }
 
-  // ================= Limit Field =================
+  //  Limit Field 
   Widget _buildLimitField({required String label, required String docId}) {
     final safeController = _safeCtrl[docId]!;
     final moderateController = _moderateCtrl[docId]!;

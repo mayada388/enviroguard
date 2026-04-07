@@ -50,11 +50,23 @@ class _SignUpPageState extends State<SignUpPage> {
       await user.updateDisplayName(name);
 
       await user.sendEmailVerification();
+      // هنا التحقق هل الايميل موجود في جدول دعوات الادمن (اذا سوينا اضافه ادمن)
+      final inviteDoc = await FirebaseFirestore.instance
+          .collection('admin_invites')
+          .doc(email.toLowerCase())
+          .get();
 
+      String role = 'user';
+      // اذا كان موجود في دعوات الادمن يصير ادمن
+      if (inviteDoc.exists && inviteDoc.data()?['enabled'] == true) {
+        role = 'admin';
+      }
+      
+      // حفظ بيانات المستخدم في firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
         'email': user.email ?? email,
-        'role': 'user',
+        'role': role,
         'healthConditions': [],
         'personalAirAlerts': {},
         'notificationsEnabled': false,
@@ -63,6 +75,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      // تسجيل الخروج بعد انشاء الحساب
       await FirebaseAuth.instance.signOut();
 
       if (!mounted) return;

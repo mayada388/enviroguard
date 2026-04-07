@@ -138,7 +138,7 @@ class ReportService {
     }
   }
 
-  // ================= PDF Widgets =================
+  // PDF Widgets 
 
   static pw.Widget _header({
     required String locationName,

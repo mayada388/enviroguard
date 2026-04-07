@@ -13,21 +13,18 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
   final CollectionReference<Map<String, dynamic>> _devicesRef =
       FirebaseFirestore.instance.collection('edge_devices');
 
-  // ---------- Add controllers ----------
   final _addId = TextEditingController();
   final _addName = TextEditingController();
   final _addType = TextEditingController();
   final _addLocation = TextEditingController();
   final _addStatus = TextEditingController();
 
-  // ---------- Update controllers ----------
   String? _selectedUpdateId;
   final _updName = TextEditingController();
   final _updType = TextEditingController();
   final _updLocation = TextEditingController();
   final _updStatus = TextEditingController();
 
-  // ---------- Delete controllers ----------
   final _delId = TextEditingController();
 
   @override
@@ -51,7 +48,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // ===================== ADD DEVICE =====================
+  // ADD DEVICE 
   Future<void> _addDevice() async {
     final id = _addId.text.trim();
     if (id.isEmpty) {
@@ -60,15 +57,15 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     }
 
     final data = <String, dynamic>{
-      // نخزن نفس الحقول اللي عندك بالجدول
+      
       'deviceName': _addName.text.trim(),
       'deviceType': _addType.text.trim(),
-      'locationId': _addLocation.text.trim(), // (لو تبغين id للموقع)
-      'status': _addStatus.text.trim(), // Online/Offline/Active...
+      'locationId': _addLocation.text.trim(), 
+      'status': _addStatus.text.trim(), 
       'lastSeen': FieldValue.serverTimestamp(),
     };
 
-    // نظّف القيم الفاضية عشان ما تتخزن ""
+    
     data.removeWhere((k, v) => v is String && v.trim().isEmpty);
 
     try {
@@ -85,7 +82,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     }
   }
 
-  // ===================== UPDATE DEVICE =====================
+  // UPDATE DEVICE
   Future<void> _updateDevice() async {
     final id = _selectedUpdateId?.trim();
     if (id == null || id.isEmpty) {
@@ -105,7 +102,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     if (loc.isNotEmpty) updates['locationId'] = loc;
     if (status.isNotEmpty) updates['status'] = status;
 
-    // لو تبغين كل تحديث يسوي آخر ظهور
+    
     updates['lastSeen'] = FieldValue.serverTimestamp();
 
     if (updates.length == 1 && updates.containsKey('lastSeen')) {
@@ -126,7 +123,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     }
   }
 
-  // ===================== DELETE DEVICE =====================
+  // DELETE DEVICE 
   Future<void> _deleteDevice() async {
     final id = _delId.text.trim();
     if (id.isEmpty) {
@@ -148,7 +145,6 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
     }
   }
 
-  // ===================== UI =====================
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFFF7F7FB);
@@ -172,7 +168,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ===================== ADD DEVICE =====================
+            //  ADD DEVICE 
             _SectionCard(
               title: 'Add Device',
               buttonText: 'Add Device',
@@ -189,7 +185,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
 
             const SizedBox(height: 20),
 
-            // ===================== UPDATE DEVICE =====================
+            //  UPDATE DEVICE 
             _SectionCard(
               title: 'Update Device',
               buttonText: 'Update',
@@ -211,7 +207,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
 
             const SizedBox(height: 20),
 
-            // ===================== DELETE DEVICE =====================
+            //  DELETE DEVICE 
             _SectionCard(
               title: 'Delete Device',
               buttonText: 'Delete',
@@ -228,7 +224,7 @@ class _AdminManageDevicePageState extends State<AdminManageDevicePage> {
   }
 }
 
-// ===================== Section Card =====================
+
 class _SectionCard extends StatelessWidget {
   final String title;
   final String buttonText;
@@ -306,7 +302,7 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// ===================== Text Field =====================
+
 class _Field extends StatelessWidget {
   final String label;
   final TextEditingController controller;
@@ -349,7 +345,7 @@ class _Field extends StatelessWidget {
   }
 }
 
-// ===================== Dropdown from Firestore =====================
+//  Dropdown from Firestore 
 class _DeviceIdDropdownField extends StatelessWidget {
   final String label;
   final CollectionReference<Map<String, dynamic>> devicesRef;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -21,11 +22,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
         title: const Text('Feedback'),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-           // مربع كبير يحتوي كل الاسئلة
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -42,56 +42,94 @@ class _FeedbackPageState extends State<FeedbackPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                 
                   const Center(
                     child: Text(
                       'Feedback Survey',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue, 
+                        color: Colors.blue,
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
+
                   _ratingQuestion(
-                      '1. Ease of Use: Is the app interface clear and easy to navigate?',
-                      q1, (val) => setState(() => q1 = val)),
+                    '1. Ease of Use: Is the app interface clear and easy to navigate?',
+                    q1,
+                    (val) => setState(() => q1 = val),
+                  ),
+
                   const SizedBox(height: 12),
+
                   _ratingQuestion(
-                      '2. Content Quality: Are the tips and data in the app useful?',
-                      q2, (val) => setState(() => q2 = val)),
+                    '2. Content Quality: Are the tips and data in the app useful?',
+                    q2,
+                    (val) => setState(() => q2 = val),
+                  ),
+
                   const SizedBox(height: 12),
+
                   _ratingQuestion(
-                      '3. App Design: Is the app design attractive and organized?',
-                      q3, (val) => setState(() => q3 = val)),
+                    '3. App Design: Is the app design attractive and organized?',
+                    q3,
+                    (val) => setState(() => q3 = val),
+                  ),
+
                   const SizedBox(height: 12),
+
                   _ratingQuestion(
-                      '4. App Performance: Is the app smooth and fast?',
-                      q4, (val) => setState(() => q4 = val)),
+                    '4. App Performance: Is the app smooth and fast?',
+                    q4,
+                    (val) => setState(() => q4 = val),
+                  ),
+
                   const SizedBox(height: 12),
+
                   _ratingQuestion(
-                      '5. Overall Satisfaction: Overall, how do you rate your experience?',
-                      q5, (val) => setState(() => q5 = val)),
+                    '5. Overall Satisfaction: Overall, how do you rate your experience?',
+                    q5,
+                    (val) => setState(() => q5 = val),
+                  ),
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
+
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+
+                await FirebaseFirestore.instance.collection('feedback').add({
+                  'q1': q1,
+                  'q2': q2,
+                  'q3': q3,
+                  'q4': q4,
+                  'q5': q5,
+                  'createdAt': FieldValue.serverTimestamp(),
+                });
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Feedback submitted successfully!')),
+                  const SnackBar(
+                    content: Text('Feedback submitted successfully!'),
+                  ),
                 );
               },
               child: const Text('Submit'),
             ),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _ratingQuestion(String question, int currentValue, Function(int) onChanged) {
+  Widget _ratingQuestion(
+    String question,
+    int currentValue,
+    Function(int) onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -101,15 +139,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            question,
-            style: const TextStyle(color: Colors.black), 
-          ),
+          Text(question),
+
           const SizedBox(height: 8),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(5, (index) {
+
               int value = index + 1;
+
               return ChoiceChip(
                 label: Text('$value'),
                 selected: currentValue == value,

@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     super.dispose();
   }
-
+  // داله نسيت كلمه السر
   Future<void> _resetPassword() async {
     final email = _emailController.text.trim();
 
@@ -212,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
+  // داله تسجيل الدخول
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -262,16 +262,17 @@ class _LoginPageState extends State<LoginPage> {
           .collection('users')
           .doc(uid)
           .get();
-
+      // قراءه الدور (role)
       final role = (doc.data()?['role'] ?? 'user').toString();
 
       if (!mounted) return;
-
+      // اذا الدور ادمن يفتح صفحه الادمن
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const AdminRootPage()),
         );
+      // اذا ما كان ادمن يفتح صفحه اليوزر
       } else {
         Navigator.pushReplacement(
           context,
