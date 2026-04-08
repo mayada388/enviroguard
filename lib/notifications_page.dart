@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart'; // واجهات Flutter
-import 'package:firebase_auth/firebase_auth.dart'; // تسجيل الدخول ومعرفة اليوزر الحالي
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore قراءة/كتابة
+import 'package:flutter/material.dart'; 
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 
-// صفحة التنبيهات
+
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
@@ -10,7 +10,7 @@ class NotificationsPage extends StatefulWidget {
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-// State للصفحة (عشان نتحكم بزر التوليد Loading)
+
 class _NotificationsPageState extends State<NotificationsPage> {
   bool _isGenerating = false;
 

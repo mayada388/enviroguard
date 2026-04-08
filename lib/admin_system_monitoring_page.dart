@@ -167,7 +167,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
         ],
       ),
       child: SizedBox(
-        width: double.infinity, // يخلي الجدول ياخذ عرض الكرت كامل
+        width: double.infinity, 
         child: SingleChildScrollView(
           scrollDirection: Axis
               .horizontal, // لو الشاشة ضيقة يصير فيه سحب يمين ويسار بدل ما تنقص الأعمدة

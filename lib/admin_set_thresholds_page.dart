@@ -14,9 +14,7 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
 
   
   final List<_PollutantItem> _items = const [
-    _PollutantItem(label: 'O₃ Limit', docId: 'O3'),
-    _PollutantItem(label: 'SO₂ Limit', docId: 'SO2'),
-    _PollutantItem(label: 'CO Limit', docId: 'CO'),
+    _PollutantItem(label: 'CO₂ Limit', docId: 'CO2'),
     _PollutantItem(label: 'PM10 Limit', docId: 'PM10'),
     _PollutantItem(label: 'PM2.5 Limit', docId: 'PM2_5'),
   ];

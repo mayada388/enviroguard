@@ -42,7 +42,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  //  دوال Forecasts (نفس حق اليوزر) 
+  //  دوال Forecasts 
 
   Color _colorForLevel(String level) {
     final l = level.toLowerCase();
@@ -207,7 +207,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
         const SizedBox(height: 30),
 
-        //  Metrological (نفس الشكل بس قيم فاضية) 
+        //  Metrological 
         const _SectionTitle(
           title: 'Metrological Data',
           icon: Icons.cloud_outlined,
@@ -230,7 +230,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
         const SizedBox(height: 30),
 
-        //  Pollutants (نفس الشكل بس قيم فاضية) 
+        //  Pollutants 
         const _SectionTitle(
           title: 'Air Pollutants Levels',
           icon: Icons.bar_chart_rounded,
@@ -270,7 +270,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
         const SizedBox(height: 30),
 
-        //  Forecasts placeholder (نفس شكل الرسم لكن bars صفر) 
+        //  Forecasts placeholder 
         const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
         const SizedBox(height: 15),
         Container(
@@ -335,7 +335,7 @@ _buildChartBackground(List.generate(
 
         const SizedBox(height: 30),
 
-        // Download placeholder (بدون فعل) 
+        // Download placeholder 
       //  Download (PDF) 
 Center(
   child: Opacity(
@@ -902,7 +902,7 @@ Center(
         return;
       }
 
-      // جلب اسم الموقع 
+      // يجيب الموقع
       final locDoc = await FirebaseFirestore.instance
           .collection('locations')
           .doc(_selectedLocationId)

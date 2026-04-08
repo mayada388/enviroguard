@@ -394,7 +394,7 @@ String _displayAlertName(String p) {
               key: _formKey,
               child: Column(
                 children: [
-                  //  AVATAR فوق (نفس الادمن)
+                  //  AVATAR 
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(

@@ -109,7 +109,7 @@ class WelcomePage extends StatelessWidget {
             ),
           ),
 
-          // طبقة تغميق
+        
           Container(
             color: Colors.black.withOpacity(0.4),
           ),
