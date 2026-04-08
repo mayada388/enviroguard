@@ -15,6 +15,7 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  
   final _formKey = GlobalKey<FormState>();
 
   final _nameCtrl = TextEditingController();
@@ -46,33 +47,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final Set<String> _selectedConditions = {};
 
   ///  PERSONAL ALERTS 
-  final List<String> _pollutantAlerts = [
-    "PM2_5",
-    "PM10",
-    "O3",
-    "CO",
-    "SO2",
-    "Forecast (10 min)",
-    "Rapid Change",
-  ];
+final List<String> _pollutantAlerts = [
+  "PM2_5",
+  "PM10",
+  "CO2",
+  "Forecasts",
+  "Rapid Change",
+];
 
   final Set<String> _selectedAlerts = {};
   final Set<String> _manualAlerts = {};
   final Map<String, int> _autoAlertCount = {};
   final Set<String> _autoRecommendedAlerts = {};
 
-  final Map<String, List<String>> _recommendedAlertsByCondition = {
-    "Asthma": ["PM2_5", "O3", "Forecast (10 min)", "Rapid Change"],
-    "COPD": ["PM2_5", "O3", "Forecast (10 min)"],
-    "Bronchitis": ["PM2_5", "PM10", "Forecast (10 min)"],
-    "Allergies": ["PM10", "PM2_5", "Rapid Change"],
-    "Heart Disease": ["PM2_5", "CO", "Forecast (10 min)"],
-    "Hypertension": ["PM2_5", "CO", "Forecast (10 min)"],
-    "Pregnancy": ["PM2_5", "PM10", "O3", "Forecast (10 min)"],
-    "Children (Under 12)": ["PM2_5", "PM10", "Forecast (10 min)"],
-    "Elderly (60+)": ["PM2_5", "PM10", "Forecast (10 min)"],
-    "Low Immunity": ["PM2_5", "Forecast (10 min)"],
-  };
+ final Map<String, List<String>> _recommendedAlertsByCondition = {
+  "Asthma": ["PM2_5", "PM10", "Forecasts", "Rapid Change"],
+  "COPD": ["PM2_5", "PM10", "Forecasts"],
+  "Bronchitis": ["PM2_5", "PM10", "Forecasts"],
+  "Allergies": ["PM10", "PM2_5", "Rapid Change"],
+  "Heart Disease": ["PM2_5", "CO2", "Forecasts"],
+  "Hypertension": ["PM2_5", "CO2", "Forecasts"],
+  "Pregnancy": ["PM2_5", "PM10", "CO2", "Forecasts"],
+  "Children (Under 12)": ["PM2_5", "PM10", "Forecasts"],
+  "Elderly (60+)": ["PM2_5", "PM10", "Forecasts"],
+  "Low Immunity": ["PM2_5", "Forecasts"],
+};
 
   void _applyRecommendedAlertsFor(String condition) {
     final rec = _recommendedAlertsByCondition[condition];
@@ -115,6 +114,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TimeOfDay _start = const TimeOfDay(hour: 22, minute: 0);
   TimeOfDay _end = const TimeOfDay(hour: 7, minute: 0);
 
+TimeOfDay _fromHHmm(String s, TimeOfDay fallback) {
+  final parts = s.split(':');
+  if (parts.length != 2) return fallback;
+  final h = int.tryParse(parts[0]);
+  final m = int.tryParse(parts[1]);
+  if (h == null || m == null) return fallback;
+  return TimeOfDay(hour: h, minute: m);
+}
+
+String _displayAlertName(String p) {
+  switch (p) {
+    case 'PM2_5':
+      return 'PM2.5';
+    case 'PM10':
+      return 'PM10';
+    case 'CO2':
+      return 'CO₂';
+    default:
+      return p;
+  }
+}
+
   @override
   void initState() {
     super.initState();
@@ -131,14 +152,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String _toHHmm(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
-  TimeOfDay _fromHHmm(String s, TimeOfDay fallback) {
-    final parts = s.split(':');
-    if (parts.length != 2) return fallback;
-    final h = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    if (h == null || m == null) return fallback;
-    return TimeOfDay(hour: h, minute: m);
-  }
+ 
 
   //  IMAGE HELPERS 
 
@@ -529,7 +543,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(p),
+                              Text(_displayAlertName(p)),
                               if (isRecommended) ...[
                                 const SizedBox(width: 6),
                                 const Icon(Icons.star, size: 16),

@@ -270,7 +270,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       const SizedBox(height: 8),
 
-                                      // ✅ Dropdown locations
+                                      // Dropdown locations
                                       Center(
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -558,7 +558,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _PollutantRow(label: 'Particulate Matter 2.5', value: vPm25, status: sPm25, color: cPm25),
                             _PollutantRow(label: 'Particulate Matter 10', value: vPm10, status: sPm10, color: cPm10),
-                            _PollutantRow(label: 'Carbon Monoxide (CO₂)', value: vCO2, status: sCO2, color: cCO2),
+                            _PollutantRow(label: 'Carbon Dioxide (CO₂)', value: vCO2, status: sCO2, color: cCO2),
                           ],
                         ),
                       );

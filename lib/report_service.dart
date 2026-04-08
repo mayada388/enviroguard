@@ -51,14 +51,17 @@ class ReportService {
       final pollutants = (aq['pollutants'] is Map<String, dynamic>)
           ? aq['pollutants'] as Map<String, dynamic>
           : <String, dynamic>{};
+final pm25Forecast = (pred['PM2_5Forecast'] is List)
+    ? (pred['PM2_5Forecast'] as List).cast<dynamic>()
+    : <dynamic>[];
 
-      final pm25Forecast = (pred['pm2.5Forecast'] is List)
-          ? (pred['pm2.5Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
+final pm10Forecast = (pred['PM10Forecast'] is List)
+    ? (pred['PM10Forecast'] as List).cast<dynamic>()
+    : <dynamic>[];
 
-      final pm10Forecast = (pred['pm10Forecast'] is List)
-          ? (pred['pm10Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
+final co2Forecast = (pred['CO2Forecast'] is List)
+    ? (pred['CO2Forecast'] as List).cast<dynamic>()
+    : <dynamic>[];
 
       // إنشاء PDF
       final pdf = pw.Document();
@@ -101,11 +104,14 @@ class ReportService {
               _pollutantsTable(pollutants),
 
               pw.SizedBox(height: 16),
+
               _sectionTitle('Forecasts'),
-              pw.SizedBox(height: 8),
-              _forecastTable(title: 'PM2.5 Forecast', list: pm25Forecast),
-              pw.SizedBox(height: 10),
-              _forecastTable(title: 'PM10 Forecast', list: pm10Forecast),
+pw.SizedBox(height: 8),
+_forecastTable(title: 'PM2.5 Forecast', list: pm25Forecast),
+pw.SizedBox(height: 10),
+_forecastTable(title: 'PM10 Forecast', list: pm10Forecast),
+pw.SizedBox(height: 10),
+_forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
 
               pw.SizedBox(height: 18),
               pw.Divider(),
@@ -215,10 +221,8 @@ class ReportService {
     }
 
     add('pm25', 'PM2.5');
-    add('pm10', 'PM10');
-    add('o3', 'O3');
-    add('co', 'CO');
-    add('so2', 'SO2');
+add('pm10', 'PM10');
+add('CO₂', 'CO₂');
 
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.6),
