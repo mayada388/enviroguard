@@ -7,9 +7,8 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
   CollectionReference<Map<String, dynamic>> get _devicesRef =>
       FirebaseFirestore.instance.collection('devices');
 
-  
   String _formatTimestamp(dynamic value) {
-    if (value == null) return 'Never';
+    if (value == null) return '- -';
 
     DateTime? dt;
     if (value is Timestamp) {
@@ -18,7 +17,7 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
       dt = value;
     }
 
-    if (dt == null) return 'Never';
+    if (dt == null) return '- -';
 
     final y = dt.year.toString().padLeft(4, '0');
     final m = dt.month.toString().padLeft(2, '0');
@@ -29,10 +28,9 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
     return '$y-$m-$d  $hh:$mm';
   }
 
- 
+  
   bool _isOn(dynamic status) {
-    if (status is bool) return status;
-    final s = (status ?? '').toString().toLowerCase();
+    final s = status?.toString().toLowerCase();
     return s == 'on' || s == 'true' || s == '1';
   }
 
@@ -59,10 +57,9 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
         ),
       ),
 
-      // ترتيب حسب آخر صيانة
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _devicesRef
-            .orderBy('lastMaintenanceAt', descending: true)
+            .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snap) {
           if (snap.hasError) {
@@ -74,77 +71,122 @@ class AdminDeviceMaintenancePage extends StatelessWidget {
           }
 
           final docs = snap.data!.docs;
-
-          if (docs.isEmpty) {
-            return const Center(child: Text('No devices found'));
-          }
+          final isEmpty = docs.isEmpty;
 
           return Padding(
             padding: const EdgeInsets.all(16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(12),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columnSpacing: 18,
-                      headingTextStyle: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF32345F),
-                        fontSize: 13,
-                      ),
-                      dataTextStyle: const TextStyle(
-                        fontSize: 12.5,
-                      ),
-                      columns: const [
-                        DataColumn(label: Text('Device Name')),
-                        DataColumn(label: Text('Device ID')),
-                        DataColumn(label: Text('Location')),
-                        DataColumn(label: Text('Status')),
-                        DataColumn(label: Text('Last Maintenance')),
-                        DataColumn(label: Text('Maintenance Type')),
-                      ],
-                      rows: docs.map((d) {
-                        final data = d.data();
-
-                        final name = (data['name'] ?? '-').toString();
-                        final deviceId = d.id;
-                        final location = (data['location'] ?? '-').toString();
-                        final status = data['status'];
-                        final lastMaintAt = data['lastMaintenanceAt'];
-                        final lastMaintType =
-                            (data['lastMaintenanceType'] ?? '-').toString();
-
-                        final isOn = _isOn(status);
-
-                        return DataRow(
-                          cells: [
-                            DataCell(Text(name)),
-                            DataCell(Text(deviceId)),
-                            DataCell(Text(location)),
-                            DataCell(_StatusChip(isOn: isOn)),
-                            DataCell(Text(_formatTimestamp(lastMaintAt))),
-                            DataCell(Text(lastMaintType)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal, 
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(12), 
+                        child: DataTable(
+                          columnSpacing: 18,
+                          dividerThickness: 0.5,
+                          headingRowColor: MaterialStateProperty.all(Color(0xFFE3F0FF)), 
+                          headingTextStyle: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2F6FED),
+                          fontSize: 13,
+                          ),
+                          dataTextStyle: const TextStyle(
+                            fontSize: 12.5,
+                          ),
+                          columns: const [
+                            DataColumn(label: Text('Description')),
+                            DataColumn(label: Text('Device ID')),
+                            DataColumn(label: Text('Main Type')),
+                            DataColumn(label: Text('Performed By')),
+                            DataColumn(label: Text('Sensor ID')),
+                            DataColumn(label: Text('Status')),
+                            DataColumn(label: Text('Timestamp')),
                           ],
-                        );
-                      }).toList(),
+                          rows: isEmpty
+                              ? List.generate(
+                                  3,
+                                  (index) => const DataRow(
+                                    cells: [
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                      DataCell(Text('- -')),
+                                    ],
+                                  ),
+                                )
+                              : docs.map((d) {
+                                  final data = d.data();
+
+                                  final description =
+                                      (data['description'] ?? '- -').toString();
+                                  final deviceId = d.id;
+                                  final mainType =
+                                      (data['mainType'] ?? '- -').toString();
+                                  final performedBy =
+                                      (data['performedBy'] ?? '- -')
+                                          .toString();
+                                  final sensorId =
+                                      (data['sensorId'] ?? '- -').toString();
+                                  final status = data['status'];
+                                  final timestamp = data['timestamp'];
+
+                                  final isOn = _isOn(status);
+
+                                  Widget buildCell(String text) {
+                                    return SizedBox(
+                                      width: 120,
+                                      child: Text(
+                                        text,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }
+
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(buildCell(description)),
+                                      DataCell(buildCell(deviceId)),
+                                      DataCell(buildCell(mainType)),
+                                      DataCell(buildCell(performedBy)),
+                                      DataCell(buildCell(sensorId)),
+                                      DataCell(_StatusChip(isOn: isOn)),
+                                      DataCell(
+                                          buildCell(_formatTimestamp(timestamp))),
+                                    ],
+                                  );
+                                }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+
+                if (isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: Text(
+                      'No devices connected yet',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+              ],
             ),
           );
         },

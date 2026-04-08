@@ -51,7 +51,7 @@ final List<String> _pollutantAlerts = [
   "PM2_5",
   "PM10",
   "CO2",
-  "Forecasts",
+  "Forecast (10 min)",
   "Rapid Change",
 ];
 
@@ -59,18 +59,17 @@ final List<String> _pollutantAlerts = [
   final Set<String> _manualAlerts = {};
   final Map<String, int> _autoAlertCount = {};
   final Set<String> _autoRecommendedAlerts = {};
-
- final Map<String, List<String>> _recommendedAlertsByCondition = {
-  "Asthma": ["PM2_5", "PM10", "Forecasts", "Rapid Change"],
-  "COPD": ["PM2_5", "PM10", "Forecasts"],
-  "Bronchitis": ["PM2_5", "PM10", "Forecasts"],
+final Map<String, List<String>> _recommendedAlertsByCondition = {
+  "Asthma": ["PM2_5", "PM10", "Forecast (10 min)", "Rapid Change"],
+  "COPD": ["PM2_5", "PM10", "Forecast (10 min)"],
+  "Bronchitis": ["PM2_5", "PM10", "Forecast (10 min)"],
   "Allergies": ["PM10", "PM2_5", "Rapid Change"],
-  "Heart Disease": ["PM2_5", "CO2", "Forecasts"],
-  "Hypertension": ["PM2_5", "CO2", "Forecasts"],
-  "Pregnancy": ["PM2_5", "PM10", "CO2", "Forecasts"],
-  "Children (Under 12)": ["PM2_5", "PM10", "Forecasts"],
-  "Elderly (60+)": ["PM2_5", "PM10", "Forecasts"],
-  "Low Immunity": ["PM2_5", "Forecasts"],
+  "Heart Disease": ["PM2_5", "CO2", "Forecast (10 min)"],
+  "Hypertension": ["PM2_5", "CO2", "Forecast (10 min)"],
+  "Pregnancy": ["PM2_5", "PM10", "CO2", "Forecast (10 min)"],
+  "Children (Under 12)": ["PM2_5", "PM10", "Forecast (10 min)"],
+  "Elderly (60+)": ["PM2_5", "PM10", "Forecast (10 min)"],
+  "Low Immunity": ["PM2_5", "Forecast (10 min)"],
 };
 
   void _applyRecommendedAlertsFor(String condition) {

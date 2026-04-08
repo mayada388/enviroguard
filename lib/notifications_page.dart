@@ -168,115 +168,121 @@ final quietEnd   = _readTime(qh['end']);
         for (final pid in pollutantIds) {
 
   // التفضيلات الشخصية
-  final personalAlerts = uData['personalAirAlerts'];
-  if (personalAlerts is Map) {
-    final wantsThisPollutant = personalAlerts[pid];
-    if (wantsThisPollutant == false) {
-      continue;
-    }
+ final personalAlerts = uData['personalAirAlerts'];
+
+bool wantsThisPollutant = true;
+bool wantsForecasts = true;
+
+if (personalAlerts is Map) {
+  if (personalAlerts[pid] == false) {
+    wantsThisPollutant = false;
   }
 
-
-// ==================  Prediction Alerts ==================
-
-final predictionsDoc = await firestore
-    .collection('predictions')
-    .doc(locationId)
-    .get();
-
-final predictions = predictionsDoc.data();
-
-String forecastField = '${pid}Forecast';
-
-final forecastArr = predictions?[forecastField];
-
-final firstUnhealthy = _getFirstUnhealthy(forecastArr);
-
-if (firstUnhealthy != null) {
-  final fValue = _toDouble(firstUnhealthy['value']);
-  final fTime = firstUnhealthy['time']?.toString();
-
-  final Map<String, dynamic> pidState =
-      (locState['prediction_$pid'] is Map)
-          ? Map<String, dynamic>.from(locState['prediction_$pid'])
-          : {};
-
-  final lastValue = pidState['value'];
-  final lastTime = pidState['time'];
-
-  if (fValue != lastValue || fTime != lastTime) {
-
-
-    String docId;
-
-    switch (pid) {
-      case 'CO2':
-        docId = 'CO2_prediction_unhealthy';
-        break;
-      case 'PM10':
-        docId = 'PM10_prediction_unhealthy';
-        break;
-      case 'PM2_5':
-        docId = 'PM2_5_prediction_unhealthy';
-        break;
-      default:
-        docId = '';
-    }
-
-
-
-    final tplDoc = await firestore
-        .collection('alert_templates')
-        .doc(docId)
-        .get();
-
-    final tplData = tplDoc.data() ?? {};
-
-    final title = (tplData['title'] ??
-            '${_displayPollutant(pid)} Unhealthy Soon')
-        .toString();
-
-    final message = (tplData['message'] ??
-            '${_displayPollutant(pid)} will reach unhealthy levels soon.')
-        .toString();
-
-    final alertRef = firestore.collection('alerts').doc();
-
-    batch.set(alertRef, {
-      'userUid': userUid,
-      'locationId': locationId,
-      'pollutantId': pid,
-      'pollutantType': _displayPollutant(pid),
-      'value': fValue,
-      'alertLevel': 'Unhealthy',
-      'title': title,
-      'message': message,
-      'timestamp': Timestamp.now(),
-      'isPrediction': true,
-    });
-
-    final userRef = firestore.collection('users').doc(userUid);
-
-    batch.set(
-      userRef,
-      {
-        'alertState': {
-          locationId: {
-            'prediction_$pid': {
-              'value': fValue,
-              'time': fTime,
-              'lastSentAt': FieldValue.serverTimestamp(),
-            }
-          }
-        }
-      },
-      SetOptions(merge: true),
-    );
-
-    created++;
-  }
+  if (personalAlerts['Forecast (10 min)'] == false) {
+  wantsForecasts = false;
+}
 }
 
+if (!wantsThisPollutant) {
+  continue;
+}// ================== Prediction Alerts ==================
+if (wantsForecasts) {
+
+  final predictionsDoc = await firestore
+      .collection('predictions')
+      .doc(locationId)
+      .get();
+
+  final predictions = predictionsDoc.data();
+
+  String forecastField = '${pid}Forecast';
+
+  final forecastArr = predictions?[forecastField];
+
+  final firstUnhealthy = _getFirstUnhealthy(forecastArr);
+
+  if (firstUnhealthy != null) {
+    final fValue = _toDouble(firstUnhealthy['value']);
+    final fTime = firstUnhealthy['time']?.toString();
+
+    final Map<String, dynamic> pidState =
+        (locState['prediction_$pid'] is Map)
+            ? Map<String, dynamic>.from(locState['prediction_$pid'])
+            : {};
+
+    final lastValue = pidState['value'];
+    final lastTime = pidState['time'];
+
+    if (fValue != lastValue || fTime != lastTime) {
+
+      String docId;
+
+      switch (pid) {
+        case 'CO2':
+          docId = 'CO2_prediction_unhealthy';
+          break;
+        case 'PM10':
+          docId = 'PM10_prediction_unhealthy';
+          break;
+        case 'PM2_5':
+          docId = 'PM2_5_prediction_unhealthy';
+          break;
+        default:
+          docId = '';
+      }
+
+      final tplDoc = await firestore
+          .collection('alert_templates')
+          .doc(docId)
+          .get();
+
+      final tplData = tplDoc.data() ?? {};
+
+      final title = (tplData['title'] ??
+              '${_displayPollutant(pid)} Unhealthy Soon')
+          .toString();
+
+      final message = (tplData['message'] ??
+              '${_displayPollutant(pid)} will reach unhealthy levels soon.')
+          .toString();
+
+      final alertRef = firestore.collection('alerts').doc();
+
+      batch.set(alertRef, {
+        'userUid': userUid,
+        'locationId': locationId,
+        'pollutantId': pid,
+        'pollutantType': _displayPollutant(pid),
+        'value': fValue,
+        'alertLevel': 'Unhealthy',
+        'title': title,
+        'message': message,
+        'timestamp': Timestamp.now(),
+        'isPrediction': true,
+      });
+
+      final userRef = firestore.collection('users').doc(userUid);
+
+      batch.set(
+        userRef,
+        {
+          'alertState': {
+            locationId: {
+              'prediction_$pid': {
+                'value': fValue,
+                'time': fTime,
+                'lastSentAt': FieldValue.serverTimestamp(),
+              }
+            }
+          }
+        },
+        SetOptions(merge: true),
+      );
+
+      created++;
+    }
+  }
+}
 
   
 final value = _toDouble(air[pid]);
