@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: 25,
                     child: Text(
-                      '${80 - (index * 20)}',
+                    '${(maxValue - (index * (maxValue / 4))).round()}',
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                   ),
@@ -369,8 +369,11 @@ class _HomePageState extends State<HomePage> {
 
                                       // Dropdown locations
                                       Center(
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                        child: Wrap(
+                                            alignment: WrapAlignment.center,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 6, // مسافة بين العناصر
+                                        //  mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
                                               Icons.location_on_outlined,
@@ -562,7 +565,7 @@ class _HomePageState extends State<HomePage> {
                         }
 
                         final data = aqSnap.data!.data()!;
-                        final aqiRaw = data['aqi'] ?? 0;
+                        final aqiRaw = data['mainPollutantValue'] ?? 0;
                         final aqi = (aqiRaw is num)
                             ? aqiRaw.toDouble()
                             : double.tryParse(aqiRaw.toString()) ?? 0;
@@ -623,15 +626,7 @@ class _HomePageState extends State<HomePage> {
                                       color: mainColor,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'AQI: ${aqi.toInt()}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: primaryColor,
-                                    ),
-                                  ),
+                                 
                                   const SizedBox(height: 6),
                                   Text(
                                     'Main Pollutant: $mainPollutant\n$updatedText',

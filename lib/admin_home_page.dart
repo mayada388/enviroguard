@@ -107,7 +107,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   SizedBox(
                     width: 25,
                     child: Text(
-                      '${80 - (index * 20)}',
+                      '${(maxValue - (index * (maxValue / 4))).round()}',
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                   ),
@@ -731,7 +731,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                     final data = aqSnap.data!.data()!;
                     final pol = data['pollutants'];
-                    final aqi = (data['aqi'] ?? 0);
+                    final aqi = (data['mainPollutantValue'] ?? 0);
                     final mainPollutant = (data['mainPollutant'] ?? '-')
                         .toString();
                     String mainStatus = 'Unknown';
@@ -789,16 +789,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                                   const SizedBox(height: 6),
 
-                                  Text(
-                                    'AQI: ${aqi.toInt()}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: primaryColor,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 6),
 
                                   Text(
                                     'Main Pollutant: $mainPollutant\n$updatedText',
