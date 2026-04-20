@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'about_app_page.dart';
 import 'share_page.dart';
 import 'join_page.dart';
 import 'feedback_page.dart';
 import 'login_page.dart';
 
-// ربط الإعدادات بالموقع (Firebase)
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -28,68 +26,53 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadSetting() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool value = prefs.getBool('notificationsEnabled') ?? false;
-
-    // نحاول نقرأ القيمة من Firestore لو فيه مستخدم
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+    if (user == null) return;
+
+    try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      if (doc.exists && doc.data() != null) {
-        final data = doc.data()!;
-        if (data['notificationsEnabled'] != null) {
-          value = data['notificationsEnabled'] == true;
-        } else {
-          // لو الحقل مو موجود نحط القيمة الافتراضية في الفايرستور
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set(
-            {
-              'notificationsEnabled': value,
-            },
-            SetOptions(merge: true),
-          );
-        }
-      }
-    }
+      final data = doc.data();
 
-    // نخزن نفس القيمة في SharedPreferences + نحدث الواجهة
-    if (!mounted) return;
-    setState(() {
-      notificationsEnabled = value;
-    });
-    await prefs.setBool('notificationsEnabled', value);
+      final value = data != null ? (data['notificationsEnabled'] ?? false) : false;
+
+      if (!mounted) return;
+      setState(() {
+        notificationsEnabled = value;
+      });
+    } catch (e) {
+      debugPrint('Error loading settings: $e');
+    }
   }
 
   Future<void> _setNotifications(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificationsEnabled', value);
-
-    // نحدّث حقل notificationsEnabled في وثيقة المستخدم في Firestore
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set(
-        {
-          'notificationsEnabled': value,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-    }
 
-    if (!mounted) return;
-    setState(() {
-      notificationsEnabled = value;
-      changed = true;
-    });
+ if (!mounted) return;
+setState(() {
+  notificationsEnabled = value;
+});
+changed = true;
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .set(
+          {
+            'notificationsEnabled': value,
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      } catch (e) {
+        debugPrint('Error updating settings: $e');
+      }
+    }
   }
 
   void _goBack() {
@@ -119,7 +102,6 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //  Notifications 
               Text(
                 'Notifications',
                 style: TextStyle(
@@ -148,7 +130,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 24),
 
-              //  Apps 
               Text(
                 'Apps',
                 style: TextStyle(
@@ -203,12 +184,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: 'Logout',
                 isLogout: true,
                 onTap: () async {
-                  // تسجيل خروج فعلي من Firebase
                   await FirebaseAuth.instance.signOut();
 
                   if (!mounted) return;
 
-                  // نودّي المستخدم لصفحة تسجيل الدخول ونمسح كل الRoutes
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -223,7 +202,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  //  Card Container 
   Widget _settingsCard({required Widget child}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -242,7 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  //  Clickable Tile 
   Widget _settingsTile({
     required String title,
     required VoidCallback onTap,

@@ -92,10 +92,10 @@ final co2Forecast = (pred['CO2Forecast'] is List)
               _sectionTitle('Metrological Data'),
               pw.SizedBox(height: 8),
               _kvTable({
-                'Pressure (hpa)': (met['pressure'] ?? '--').toString(),
-                'Temperature (°C)': (met['temperature'] ?? '--').toString(),
-                'Wind Speed (km/h)': (met['windSpeed'] ?? '--').toString(),
-                'Humidity': (met['humidity'] ?? '--').toString(),
+                'Pressure (hpa)': (aq['Pressure'] ?? '--').toString(),
+                'Temperature (°C)': (aq['Temperature'] ?? '--').toString(),
+                'Wind Speed (km/h)': (aq['wind_speed'] ?? '--').toString(),
+                'Humidity': (aq['Humidity'] ?? '--').toString(),
               }),
 
               pw.SizedBox(height: 16),
@@ -216,13 +216,13 @@ _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
     void add(String key, String label) {
       final m = asMap(pollutants[key]);
       final value = (m?['value'] ?? '--').toString();
-      final level = (m?['level'] ?? '--').toString();
+      final level = (m?['status'] ?? '--').toString();
       rows.add([label, value, level]);
     }
 
-    add('pm25', 'PM2.5');
-add('pm10', 'PM10');
-add('CO₂', 'CO₂');
+    add('PM2_5', 'PM2.5');
+add('PM10', 'PM10');
+add('CO2', 'CO₂');
 
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.6),
@@ -257,7 +257,7 @@ add('CO₂', 'CO₂');
 
       final timeStr = dt == null ? '--' : DateFormat('HH:mm').format(dt);
       final valueStr = (m['value'] ?? '--').toString();
-      final levelStr = (m['level'] ?? '--').toString();
+      final levelStr = (m['status'] ?? '--').toString();
 
       rows.add(pw.TableRow(
         children: [_td(timeStr), _td(valueStr), _td(levelStr)],

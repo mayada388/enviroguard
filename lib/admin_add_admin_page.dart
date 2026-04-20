@@ -66,6 +66,7 @@ class _AdminAddAdminPageState extends State<AdminAddAdminPage> {
             content: Text('Admin code is not set in Firestore (settings/app).'),
           ),
         );
+        setState(() => _loading = false);
         return;
       }
 
@@ -73,6 +74,7 @@ class _AdminAddAdminPageState extends State<AdminAddAdminPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Wrong admin code')),
         );
+        setState(() => _loading = false);
         return;
       }
 

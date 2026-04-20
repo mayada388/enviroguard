@@ -46,7 +46,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   Color _colorForLevel(String level) {
     final l = level.toLowerCase();
-    if (l == 'good') return Colors.green;
+    if (l == 'healthy') return Colors.green;
     if (l == 'moderate') return const Color(0xFFE9B35F);
     if (l == 'unhealthy') return const Color(0xFFD65B66);
     return const Color(0xFFB0BEC5);
@@ -68,17 +68,26 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   List<_Bar> _barsFromForecast(List<dynamic> forecast) {
     return forecast.map((item) {
-      final map = item as Map<String, dynamic>;
+      if (item is! Map<String, dynamic>) {
+  return const _Bar(
+    value: 0,
+    color: Color(0xFFB0BEC5),
+    label: '--',
+  );
+}
 
-      final ts = map['time'] as Timestamp;
-      final numVal = map['value'] as num;
-      final value = numVal.toDouble();
-      final level = (map['level'] ?? '').toString();
+final map = item;
 
+      final ts = map['time'];
+final numVal = map['value'];
+final level = (map['status'] ?? '').toString();
+
+final value = (numVal is num) ? numVal.toDouble() : 0.0;
+final time = ts is Timestamp ? ts : null;
       return _Bar(
         value: value,
         color: _colorForLevel(level),
-        label: _labelFromTimestamp(ts),
+        label: time != null ? _labelFromTimestamp(time) : '--',
       );
     }).toList();
   }
@@ -338,52 +347,51 @@ _buildChartBackground(List.generate(
         // Download placeholder 
       //  Download (PDF) 
 Center(
-  child: Opacity(
-    opacity: 0.6,
-    child: InkWell(
-      onTap: () async {
-        final locationId = _selectedLocationId;
+  child: InkWell(
+    onTap: () async {
+      final id = _selectedLocationId;
 
-        if (locationId == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select a location first')),
-          );
-          return;
-        }
-
-        final locDoc = await FirebaseFirestore.instance
-            .collection('locations')
-            .doc(locationId)
-            .get();
-
-        final locationName =
-            (locDoc.data()?['name'] ?? locationId).toString();
-
-        await ReportService.downloadAirQualityReport(
-          locationId: locationId,
-          locationName: locationName,
-          context: context,
+      if (id == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a location first'),
+          ),
         );
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.file_download_outlined,
+        return;
+      }
+
+      final locDoc = await FirebaseFirestore.instance
+          .collection('locations')
+          .doc(id)
+          .get();
+
+      final locationName =
+          (locDoc.data()?['name'] ?? id).toString();
+
+      await ReportService.downloadAirQualityReport(
+        locationId: id,
+        locationName: locationName,
+        context: context,
+      );
+    },
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.file_download_outlined,
+          color: primaryColor.withOpacity(0.6),
+          size: 20,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Download Air Quality Report',
+          style: TextStyle(
             color: primaryColor.withOpacity(0.6),
-            size: 20,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
           ),
-          const SizedBox(width: 8),
-          Text(
-            'Download Air Quality Report',
-            style: TextStyle(
-              color: primaryColor.withOpacity(0.6),
-              fontWeight: FontWeight.w500,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     ),
   ),
 ),
@@ -633,8 +641,16 @@ Center(
                     }
 
                     final data = aqSnap.data!.data()!;
+                     final pol = data['pollutants'];
                     final aqi = (data['aqi'] ?? 0);
                     final mainPollutant = (data['mainPollutant'] ?? '-').toString();
+                    String mainStatus = 'Unknown';
+
+if (pol != null && pol[mainPollutant] != null) {
+  final mainData = pol[mainPollutant];
+  mainStatus = (mainData['status'] ?? 'Unknown').toString();
+}
+final mainColor = _colorForLevel(mainStatus);
 
                     final ts = data['updateTime'] as Timestamp?;
                     String updatedText = 'Updated: -';
@@ -669,28 +685,43 @@ Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
+                              
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Air Quality',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFE9B35F),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Main Pollutant: $mainPollutant\n$updatedText',
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 12,
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text(
+      mainStatus,
+      style: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: mainColor,
+      ),
+    ),
+
+    const SizedBox(height: 6),
+
+    Text(
+      'AQI: ${aqi.toInt()}',
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: primaryColor,
+      ),
+    ),
+
+    const SizedBox(height: 6),
+
+    Text(
+      'Main Pollutant: $mainPollutant\n$updatedText',
+      style: TextStyle(
+        color: Colors.grey[500],
+        fontSize: 12,
+        height: 1.5,
+      ),
+    ),
+  ],
+),
+
                               Stack(
                                 alignment: Alignment.center,
                                 children: [
@@ -701,9 +732,7 @@ Center(
                                       value: (aqi / 150).clamp(0, 1).toDouble(),
                                       strokeWidth: 10,
                                       backgroundColor: const Color(0xFFF1F1F1),
-                                      valueColor: const AlwaysStoppedAnimation(
-                                        Color(0xFFE9B35F),
-                                      ),
+                                     valueColor: AlwaysStoppedAnimation(mainColor),
                                     ),
                                   ),
                                   Column(
@@ -740,21 +769,36 @@ Center(
                           icon: Icons.cloud_outlined,
                         ),
                         const SizedBox(height: 15),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 15,
-                          crossAxisSpacing: 15,
-                          childAspectRatio: 1.5,
-                          children: const [
-                            _MetCard(icon: Icons.compress, title: 'Pressure', value: '720 hpa'),
-                            _MetCard(icon: Icons.thermostat, title: 'Temperatuer', value: '29°'),
-                            _MetCard(icon: Icons.air, title: 'Wind speed', value: '12km/h'),
-                            _MetCard(icon: Icons.water_drop_outlined, title: 'Humidity', value: '2,3'),
-                          ],
-                        ),
-
+                       GridView.count(
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
+  crossAxisCount: 2,
+  mainAxisSpacing: 15,
+  crossAxisSpacing: 15,
+  childAspectRatio: 1.5,
+  children: [
+    _MetCard(
+      icon: Icons.compress,
+      title: 'Pressure',
+      value: '${data['Pressure'] ?? '--'} hPa',
+    ),
+    _MetCard(
+      icon: Icons.thermostat,
+      title: 'Temperature',
+      value: '${data['Temperature'] ?? '--'}°',
+    ),
+    _MetCard(
+      icon: Icons.air,
+      title: 'Wind speed',
+      value: '${data['wind_speed'] ?? '--'} km/h',
+    ),
+    _MetCard(
+      icon: Icons.water_drop_outlined,
+      title: 'Humidity',
+      value: '${data['Humidity'] ?? '--'}%',
+    ),
+  ],
+),
                         const SizedBox(height: 30),
 
                         //  Air Pollutants Levels (ثابتة) 
@@ -769,28 +813,31 @@ Center(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Column(
-                            children: [
-                              _PollutantRow(
-                                label: 'Particulate Matter 2.5',
-                                value: '80.0',
-                                status: 'Unhealthy',
-                                color: Color(0xFFD65B66),
-                              ),
-                              _PollutantRow(
-                                label: 'Particulate Matter 10',
-                                value: '69.6',
-                                status: 'Moderate',
-                                color: Color(0xFFE9B35F),
-                              ),
-                              _PollutantRow(
-                                label: 'Carbon Dioxide (CO₂)',
-                                value: '3.3',
-                                status: 'Good',
-                                color: Colors.green,
-                              ),
-                            ],
-                          ),
+                        child: Column(
+  children: [
+
+_PollutantRow(
+  label: 'Particulate Matter 2.5',
+  value: (pol?['PM2_5']?['value'] ?? 0).toString(),
+  status: (pol?['PM2_5']?['status'] ?? '--').toString(),
+  color: _colorForLevel((pol?['PM2_5']?['status'] ?? '').toString()),
+),
+
+_PollutantRow(
+  label: 'Particulate Matter 10',
+  value: (pol?['PM10']?['value'] ?? 0).toString(),
+  status: (pol?['PM10']?['status'] ?? '--').toString(),
+  color: _colorForLevel((pol?['PM10']?['status'] ?? '').toString()),
+),
+
+_PollutantRow(
+  label: 'Carbon Dioxide (CO₂)',
+  value: (pol?['CO2']?['value'] ?? 0).toString(),
+  status: (pol?['CO2']?['status'] ?? '--').toString(),
+  color: _colorForLevel((pol?['CO2']?['status'] ?? '').toString()),
+),
+  ],
+),
                         ),
 
                         const SizedBox(height: 30),
@@ -823,14 +870,16 @@ StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
 
     final predData = predSnap.data!.data()!;
 
-    final pm25List =
-        (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
+// ===== PM2.5 =====
+List<dynamic> _safeList(dynamic data) {
+  if (data is List) return data;
+  if (data is Map) return [data];
+  return [];
+}
 
-    final pm10List =
-        (predData['pm10Forecast'] as List<dynamic>?) ?? [];
-
-    final co2List =
-        (predData['co2Forecast'] as List<dynamic>?) ?? [];
+final pm25List = _safeList(predData['PM2_5Forecast']);
+final pm10List = _safeList(predData['PM10Forecast']);
+final co2List  = _safeList(predData['CO2Forecast']);
 
     final pm25Bars = _barsFromForecast(pm25List);
     final pm10Bars = _barsFromForecast(pm10List);

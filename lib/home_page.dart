@@ -41,14 +41,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   //  Helpers (Colors/Forecast Bars) 
+Color _colorForLevel(String level) {
+  final l = level.toLowerCase().trim();
 
-  Color _colorForLevel(String level) {
-    final l = level.toLowerCase();
-    if (l == 'good') return Colors.green;
-    if (l == 'moderate') return const Color(0xFFE9B35F);
-    if (l == 'unhealthy') return const Color(0xFFD65B66);
-    return const Color(0xFFB0BEC5);
-  }
+  if ( l == 'healthy') return Colors.green;
+  if (l == 'moderate') return const Color(0xFFE9B35F);
+  if (l == 'unhealthy') return const Color(0xFFD65B66);
+
+  return const Color(0xFFB0BEC5);
+}
 
   String _labelFromTimestamp(Timestamp ts) {
     final dt = ts.toDate();
@@ -62,21 +63,49 @@ class _HomePageState extends State<HomePage> {
     return '$hour $ampm';
   }
 
-  List<_Bar> _barsFromForecast(List<dynamic> forecast) {
-    return forecast.map((item) {
-      final map = item as Map<String, dynamic>;
-      final ts = map['time'] as Timestamp;
-      final numVal = map['value'] as num;
-      final value = numVal.toDouble();
-      final level = (map['level'] ?? '').toString();
+List<_Bar> _barsFromForecast(List<dynamic> forecast) {
+  return forecast.map((item) {
+    if (item is! Map<String, dynamic>) {
+  return const _Bar(
+    value: 0,
+    color: Color(0xFFB0BEC5),
+    label: '--',
+  );
+}
 
-      return _Bar(
-        value: value,
-        color: _colorForLevel(level),
-        label: _labelFromTimestamp(ts),
+final map = item;
+
+    final tsRaw = map['time'];
+
+    // إذا الوقت ناقص رجّع بار فاضي بدل ما ينهار التطبيق
+    if (tsRaw == null) {
+      return const _Bar(
+        value: 0,
+        color: Color(0xFFB0BEC5),
+        label: '--',
       );
-    }).toList();
-  }
+    }
+
+  final ts = tsRaw as Timestamp?;
+if (ts == null) {
+  return const _Bar(
+    value: 0,
+    color: Color(0xFFB0BEC5),
+    label: '--',
+  );
+}
+    final numVal = map['value'];
+    final value = (numVal is num) ? numVal.toDouble() : 0.0;
+
+    final level = (map['status'] ?? '').toString();
+
+    return _Bar(
+      value: value,
+      color: _colorForLevel(level),
+      label: _labelFromTimestamp(ts),
+    );
+  }).toList();
+}
 
   Widget _buildChartBackground(List<Widget> bars) {
     return SizedBox(
@@ -389,9 +418,22 @@ class _HomePageState extends State<HomePage> {
                         }
 
                         final data = aqSnap.data!.data()!;
-                        final aqi = (data['aqi'] ?? 0);
-                        final mainPollutant = (data['mainPollutant'] ?? '--').toString();
+                        final aqiRaw = data['aqi'] ?? 0;
+final aqi = (aqiRaw is num)
+    ? aqiRaw.toDouble()
+    : double.tryParse(aqiRaw.toString()) ?? 0;
 
+
+                        final mainPollutant = (data['mainPollutant'] ?? '--').toString();
+final pollutants = data['pollutants'] as Map<String, dynamic>?;
+
+String mainStatus = 'Unknown';
+
+if (pollutants != null && pollutants[mainPollutant] != null) {
+  final mainData = pollutants[mainPollutant] as Map<String, dynamic>;
+  mainStatus = (mainData['status'] ?? 'Unknown').toString();
+}
+final mainColor = _colorForLevel(mainStatus);
                         final ts = data['updateTime'] as Timestamp?;
                         String updatedText = 'Updated: --';
                         if (ts != null) {
@@ -415,53 +457,77 @@ class _HomePageState extends State<HomePage> {
                             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Air Quality',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFE9B35F),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Main Pollutant: $mainPollutant\n$updatedText',
-                                    style: TextStyle(color: Colors.grey[500], fontSize: 12, height: 1.5),
-                                  ),
-                                ],
-                              ),
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 85,
-                                    height: 85,
-                                    child: CircularProgressIndicator(
-                                      value: ((aqi as num).toDouble() / 150).clamp(0, 1),
-                                      strokeWidth: 10,
-                                      backgroundColor: const Color(0xFFF1F1F1),
-                                      valueColor: const AlwaysStoppedAnimation(Color(0xFFE9B35F)),
-                                    ),
-                                  ),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '$aqi',
-                                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
-                                      ),
-                                      Text('AQI', style: TextStyle(fontSize: 10, color: Colors.grey[500])),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          mainStatus,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: mainColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'AQI: ${aqi.toInt()}',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: primaryColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Main Pollutant: $mainPollutant\n$updatedText',
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: 12,
+            height: 1.5,
+          ),
+        ),
+      ],
+    ),
+
+    Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: 85,
+          height: 85,
+          child: CircularProgressIndicator(
+            value: (aqi / 150).clamp(0, 1),
+            strokeWidth: 10,
+            backgroundColor: const Color(0xFFF1F1F1),
+            valueColor: AlwaysStoppedAnimation(mainColor),
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$aqi',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
+            Text(
+              'AQI',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+),
                         );
                       },
                     ),
@@ -475,24 +541,19 @@ class _HomePageState extends State<HomePage> {
                   StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     stream: aqStream,
                     builder: (context, metSnap) {
-                      final met = metSnap.data?.data()?['met'] as Map<String, dynamic>?;
+                      final data = metSnap.data?.data();
 
-                      String pressure = '--';
-                      String temp = '--';
-                      String wind = '--';
-                      String humidity = '--';
+String pressure = '--';
+String temp = '--';
+String wind = '--';
+String humidity = '--';
 
-                      if (met != null) {
-                        final p = met['pressure'];
-                        final t = met['temperature'];
-                        final w = met['windSpeed'];
-                        final h = met['humidity'];
-
-                        if (p != null) pressure = '$p hpa';
-                        if (t != null) temp = '$t°';
-                        if (w != null) wind = '$w km/h';
-                        if (h != null) humidity = '$h';
-                      }
+if (data != null) {
+  if (data['Pressure'] != null) pressure = '${data['Pressure']} hPa';
+  if (data['Temperature'] != null) temp = '${data['Temperature']}°';
+  if (data['wind_speed'] != null) wind = '${data['wind_speed']} km/h';
+  if (data['Humidity'] != null) humidity = '${data['Humidity']}%';
+}
 
                       return GridView.count(
                         shrinkWrap: true,
@@ -530,23 +591,23 @@ class _HomePageState extends State<HomePage> {
                       Map<String, dynamic>? _asMap(dynamic x) => (x is Map<String, dynamic>) ? x : null;
 
                       if (pol != null) {
-                        final pm25 = _asMap(pol['pm25']);
-                        final pm10 = _asMap(pol['pm10']);
-                        final co2 = _asMap(pol['CO₂']);
+                        final pm25 = _asMap(pol['PM2_5']);
+                        final pm10 = _asMap(pol['PM10']);
+                        final co2 = _asMap(pol['CO2']);
 
                         if (pm25 != null) {
                           vPm25 = (pm25['value'] ?? '--').toString();
-                          sPm25 = (pm25['level'] ?? '--').toString();
+                          sPm25 = (pm25['status'] ?? '--').toString();
                           cPm25 = _colorForLevel(sPm25);
                         }
                         if (pm10 != null) {
                           vPm10 = (pm10['value'] ?? '--').toString();
-                          sPm10 = (pm10['level'] ?? '--').toString();
+                          sPm10 = (pm10['status'] ?? '--').toString();
                           cPm10 = _colorForLevel(sPm10);
                         }
                         if (co2 != null) {
                           vCO2 = (co2['value'] ?? '--').toString();
-                          sCO2 = (co2['level'] ?? '--').toString();
+                          sCO2 = (co2['status'] ?? '--').toString();
                           cCO2 = _colorForLevel(sCO2);
                         }
                       }
@@ -558,7 +619,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _PollutantRow(label: 'Particulate Matter 2.5', value: vPm25, status: sPm25, color: cPm25),
                             _PollutantRow(label: 'Particulate Matter 10', value: vPm10, status: sPm10, color: cPm10),
-                            _PollutantRow(label: 'Carbon Dioxide (CO₂)', value: vCO2, status: sCO2, color: cCO2),
+                            _PollutantRow(label: 'Carbon Dioxide (CO2)', value: vCO2, status: sCO2, color: cCO2),
                           ],
                         ),
                       );
@@ -722,14 +783,15 @@ else
 
       final predData = predSnap.data!.data()!;
 
-      final pm25List =
-          (predData['pm2.5Forecast'] as List<dynamic>?) ?? [];
+List<dynamic> _safeList(dynamic data) {
+  if (data is List) return data;
+  if (data is Map) return [data]; // يحوله ليست فيها عنصر واحد
+  return [];
+}
 
-      final pm10List =
-          (predData['pm10Forecast'] as List<dynamic>?) ?? [];
-
-      final co2List =
-          (predData['co2Forecast'] as List<dynamic>?) ?? [];
+final pm25List = _safeList(predData['PM2_5Forecast']);
+final pm10List = _safeList(predData['PM10Forecast']);
+final co2List  = _safeList(predData['CO2Forecast']);
 
       final pm25Bars = pm25List.isEmpty
           ? List.generate(

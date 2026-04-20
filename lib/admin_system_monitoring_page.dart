@@ -33,12 +33,9 @@ class AdminSystemMonitoringPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Edge Device Card 
               _buildEdgeDeviceCard(),
-
               const SizedBox(height: 10),
 
-              //  Sensors 
               const Text(
                 'Sensors',
                 style: TextStyle(
@@ -52,7 +49,6 @@ class AdminSystemMonitoringPage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Alert Logs 
               const Text(
                 'Alert Logs',
                 style: TextStyle(
@@ -70,12 +66,12 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  //  EDGE DEVICE CARD 
+  // EDGE DEVICE (edge_devices → raspberry)
   Widget _buildEdgeDeviceCard() {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('edge_devices')
-          .doc('raspberry') 
+          .doc('raspberry')
           .snapshots(),
       builder: (context, snapshot) {
         String statusText = 'Loading...';
@@ -84,10 +80,9 @@ class AdminSystemMonitoringPage extends StatelessWidget {
         if (snapshot.hasError) {
           statusText = 'Error';
           statusColor = const Color(0xFFD65B66);
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          statusText = 'Loading...';
         } else if (snapshot.hasData && snapshot.data!.data() != null) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
+
           final status = (data['status'] ?? 'Unknown').toString();
 
           if (status.toLowerCase() == 'online') {
@@ -98,7 +93,6 @@ class AdminSystemMonitoringPage extends StatelessWidget {
             statusColor = const Color(0xFFD65B66);
           } else {
             statusText = status;
-            statusColor = const Color(0xFFAAAAAA);
           }
         }
 
@@ -150,7 +144,7 @@ class AdminSystemMonitoringPage extends StatelessWidget {
     );
   }
 
-  //  SENSORS TABLE 
+  // SENSORS (sensors: SEN-001..003)
   Widget _buildSensorsTable() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -166,103 +160,63 @@ class AdminSystemMonitoringPage extends StatelessWidget {
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity, 
-        child: SingleChildScrollView(
-          scrollDirection: Axis
-              .horizontal, // لو الشاشة ضيقة يصير فيه سحب يمين ويسار بدل ما تنقص الأعمدة
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('sensors')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Text('Error loading sensors');
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Loading sensors...'),
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('sensors').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Text('Loading sensors...');
+          }
+
+          final docs = snapshot.data!.docs;
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columnSpacing: 18,
+              headingRowHeight: 32,
+              dataRowHeight: 32,
+              columns: const [
+                DataColumn(label: Text('Sensor ID')),
+                DataColumn(label: Text('Type')),
+                DataColumn(label: Text('Status')),
+                DataColumn(label: Text('Location')),
+                DataColumn(label: Text('Last Update')),
+              ],
+              rows: docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+
+                final sensorId = doc.id;
+                final type = (data['sensorType'] ?? '').toString();
+                final status = (data['status'] ?? '').toString();
+                final location = (data['locationId'] ?? '').toString();
+                final lastUpdate = _formatTime(data['lastUpdate']);
+
+                final color = status.toLowerCase() == 'active'
+                    ? const Color(0xFF3BAF63)
+                    : const Color(0xFFD65B66);
+
+                return DataRow(
+                  cells: [
+                    DataCell(Text(sensorId, style: const TextStyle(fontSize: 11))),
+                    DataCell(Text(type, style: const TextStyle(fontSize: 11))),
+                    DataCell(Text(status,
+                        style: TextStyle(fontSize: 11, color: color))),
+                    DataCell(Text(location, style: const TextStyle(fontSize: 11))),
+                    DataCell(Text(lastUpdate, style: const TextStyle(fontSize: 11))),
+                  ],
                 );
-              }
-
-              final docs = snapshot.data!.docs;
-
-              return DataTable(
-                columnSpacing: 18,
-                headingRowHeight: 32,
-                dataRowHeight: 32,
-                headingTextStyle: const TextStyle(
-                  color: Color(0xFF2F8AD8),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11,
-                ),
-                headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                  (states) => const Color(0xFFEAF4FF),
-                ),
-                columns: const [
-                  DataColumn(label: Text('Sensor ID')),
-                  DataColumn(label: Text('Type')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Location')),
-                  DataColumn(
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text('Last Update'),
-                    ),
-                  ),
-                ],
-                rows: docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-
-                  final sensorId = doc.id; 
-                  final sensorType = (data['sensorType'] ?? '').toString();
-                  final status = (data['status'] ?? '').toString();
-                  final location =
-                      (data['locationId'] ?? '').toString(); // taibah_university
-                  final lastUpdate = _formatTime(data['lastUpdate']);
-
-                  final statusColor =
-                      status.toLowerCase() == 'active'
-                          ? const Color(0xFF3BAF63)
-                          : const Color(0xFFD65B66);
-
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(sensorId,
-                          style: const TextStyle(fontSize: 11))),
-                      DataCell(Text(sensorType,
-                          style: const TextStyle(fontSize: 11))),
-                      DataCell(
-                        Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
-                          ),
-                        ),
-                      ),
-                      DataCell(Text(location,
-                          style: const TextStyle(fontSize: 11))),
-                      DataCell(Text(lastUpdate,
-                          style: const TextStyle(fontSize: 11))),
-                    ],
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ),
+              }).toList(),
+            ),
+          );
+        },
       ),
     );
   }
 
-  //  ALERTS TABLE 
+  // ALERTS (alerts structure you gave)
   Widget _buildAlertsTable() {
     return Container(
       padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -274,91 +228,52 @@ class AdminSystemMonitoringPage extends StatelessWidget {
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('alerts')
-                .orderBy('timestamp', descending: true)
-                .limit(5) // آخر 5 تنبيهات
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Text('Error loading alerts');
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Loading alerts...'),
-                );
-              }
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('alerts')
+            .orderBy('timestamp', descending: true)
+            .limit(5)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Text('Loading alerts...');
+          }
 
-              final docs = snapshot.data!.docs;
+          final docs = snapshot.data!.docs;
 
-              return DataTable(
-                columnSpacing: 30,
-                headingRowHeight: 32,
-                dataRowHeight: 32,
-                headingTextStyle: const TextStyle(
-                  color: Color(0xFF2F8AD8),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11,
-                ),
-                headingRowColor: MaterialStateProperty.resolveWith<Color?>(
-                  (states) => const Color(0xFFEAF4FF),
-                ),
-                columns: const [
-                  DataColumn(label: Text('Alert Type')),
-                  DataColumn(label: Text('Sensor ID')),
-                  DataColumn(label: Text('Time')),
+          return DataTable(
+            columns: const [
+              DataColumn(label: Text('Title')),
+              DataColumn(label: Text('Type')),
+              DataColumn(label: Text('Value')),
+              DataColumn(label: Text('Location')),
+              DataColumn(label: Text('Time')),
+            ],
+            rows: docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+
+              return DataRow(
+                cells: [
+                  DataCell(Text((data['title'] ?? '').toString())),
+                  DataCell(Text((data['pollutantType'] ?? '').toString())),
+                  DataCell(Text((data['value'] ?? '').toString())),
+                  DataCell(Text((data['locationId'] ?? '').toString())),
+                  DataCell(Text(_formatTime(data['timestamp']))),
                 ],
-                rows: docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final title = (data['title'] ?? '').toString();
-                  final sensorId =
-                      (data['sensorId'] ?? '-').toString(); // يتعامل مع null
-                  final time = _formatTime(data['timestamp']);
-
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                          Text(title, style: const TextStyle(fontSize: 11))),
-                      DataCell(
-                          Text(sensorId, style: const TextStyle(fontSize: 11))),
-                      DataCell(
-                          Text(time, style: const TextStyle(fontSize: 11))),
-                    ],
-                  );
-                }).toList(),
               );
-            },
-          ),
-        
+            }).toList(),
+          );
+        },
       ),
     );
   }
 
-  // HELPERS 
   static String _formatTime(dynamic value) {
     if (value == null) return '-';
 
-    
     if (value is Timestamp) {
       final dt = value.toDate();
-      int hour = dt.hour;
-      final minute = dt.minute.toString().padLeft(2, '0');
-      final period = hour >= 12 ? 'PM' : 'AM';
-      if (hour == 0) {
-        hour = 12;
-      } else if (hour > 12) {
-        hour -= 12;
-      }
-      return '$hour:$minute $period';
-    }
-
-    
-    if (value is String) {
-      return value;
+      return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
     }
 
     return value.toString();

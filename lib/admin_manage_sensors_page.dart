@@ -57,7 +57,7 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
         'locationId': locationId,
         'sensorName': '', 
         'sensorType': sensorType,
-        'status': 'Active', // default
+        'status': 'ON', // default
         'lastUpdate': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -84,7 +84,12 @@ class _AdminManageSensorsPageState extends State<AdminManageSensorsPage> {
     final locationId = _newLocationId.text.trim();
 
     if (name.isNotEmpty) updates['sensorName'] = name;
-    if (status.isNotEmpty) updates['status'] = status;
+    if (status.isNotEmpty) {
+  final s = status.toUpperCase();
+  if (s == 'ON' || s == 'OFF') {
+    updates['status'] = s;
+  }
+}
     if (locationId.isNotEmpty) updates['locationId'] = locationId;
 
     if (updates.isEmpty) {
