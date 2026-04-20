@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'notifications_page.dart';
 
-
 //  Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,13 +25,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
   String? _selectedLocationId; // null => Select location
 
   Future<void> _saveLocationId(User user, String locationId) async {
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-      {
-        'locationId': locationId,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'locationId': locationId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   void _openEditProfile() {
@@ -42,7 +38,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  //  دوال Forecasts 
+  //  دوال Forecasts
 
   Color _colorForLevel(String level) {
     final l = level.toLowerCase();
@@ -69,21 +65,17 @@ class _AdminHomePageState extends State<AdminHomePage> {
   List<_Bar> _barsFromForecast(List<dynamic> forecast) {
     return forecast.map((item) {
       if (item is! Map<String, dynamic>) {
-  return const _Bar(
-    value: 0,
-    color: Color(0xFFB0BEC5),
-    label: '--',
-  );
-}
+        return const _Bar(value: 0, color: Color(0xFFB0BEC5), label: '--');
+      }
 
-final map = item;
+      final map = item;
 
       final ts = map['time'];
-final numVal = map['value'];
-final level = (map['status'] ?? '').toString();
+      final numVal = map['value'];
+      final level = (map['status'] ?? '').toString();
 
-final value = (numVal is num) ? numVal.toDouble() : 0.0;
-final time = ts is Timestamp ? ts : null;
+      final value = (numVal is num) ? numVal.toDouble() : 0.0;
+      final time = ts is Timestamp ? ts : null;
       return _Bar(
         value: value,
         color: _colorForLevel(level),
@@ -93,6 +85,15 @@ final time = ts is Timestamp ? ts : null;
   }
 
   Widget _buildChartBackground(List<Widget> bars) {
+    double maxValue = 0;
+
+    for (var bar in bars) {
+      if (bar is _Bar) {
+        if (bar.value > maxValue) {
+          maxValue = bar.value;
+        }
+      }
+    }
     return SizedBox(
       height: 150,
       child: Stack(
@@ -122,7 +123,17 @@ final time = ts is Timestamp ? ts : null;
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: bars,
+              children: bars.map((bar) {
+                if (bar is _Bar) {
+                  return _Bar(
+                    value: bar.value,
+                    color: bar.color,
+                    label: bar.label,
+                    maxValue: maxValue,
+                  );
+                }
+                return bar;
+              }).toList(),
             ),
           ),
         ],
@@ -143,10 +154,7 @@ final time = ts is Timestamp ? ts : null;
             color: Colors.white,
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 20,
-              ),
+              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20),
             ],
           ),
           child: Row(
@@ -184,8 +192,7 @@ final time = ts is Timestamp ? ts : null;
                       value: 0,
                       strokeWidth: 10,
                       backgroundColor: Color(0xFFF1F1F1),
-                      valueColor:
-                          AlwaysStoppedAnimation(Color(0xFFE9B35F)),
+                      valueColor: AlwaysStoppedAnimation(Color(0xFFE9B35F)),
                     ),
                   ),
                   Column(
@@ -201,10 +208,7 @@ final time = ts is Timestamp ? ts : null;
                       ),
                       Text(
                         'AQI',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                       ),
                     ],
                   ),
@@ -216,7 +220,7 @@ final time = ts is Timestamp ? ts : null;
 
         const SizedBox(height: 30),
 
-        //  Metrological 
+        //  Metrological
         const _SectionTitle(
           title: 'Metrological Data',
           icon: Icons.cloud_outlined,
@@ -233,13 +237,17 @@ final time = ts is Timestamp ? ts : null;
             _MetCard(icon: Icons.compress, title: 'Pressure', value: '--'),
             _MetCard(icon: Icons.thermostat, title: 'Temperatuer', value: '--'),
             _MetCard(icon: Icons.air, title: 'Wind speed', value: '--'),
-            _MetCard(icon: Icons.water_drop_outlined, title: 'Humidity', value: '--'),
+            _MetCard(
+              icon: Icons.water_drop_outlined,
+              title: 'Humidity',
+              value: '--',
+            ),
           ],
         ),
 
         const SizedBox(height: 30),
 
-        //  Pollutants 
+        //  Pollutants
         const _SectionTitle(
           title: 'Air Pollutants Levels',
           icon: Icons.bar_chart_rounded,
@@ -265,21 +273,34 @@ final time = ts is Timestamp ? ts : null;
                 status: '—',
                 color: Color(0xFFB0BEC5),
               ),
-             
+
               _PollutantRow(
                 label: 'Carbon Dioxide (CO₂)',
                 value: '--',
                 status: '—',
                 color: Color(0xFFB0BEC5),
               ),
-            
+
+              _PollutantRow(
+                label: 'Nitrogen Dioxide (NO₂)',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
+
+              _PollutantRow(
+                label: 'Ozone (O₃)',
+                value: '--',
+                status: '—',
+                color: Color(0xFFB0BEC5),
+              ),
             ],
           ),
         ),
 
         const SizedBox(height: 30),
 
-        //  Forecasts placeholder 
+        //  Forecasts placeholder
         const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
         const SizedBox(height: 15),
         Container(
@@ -296,14 +317,16 @@ final time = ts is Timestamp ? ts : null;
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
-              _buildChartBackground(List.generate(
-                6,
-                (i) => const _Bar(
-                  value: 0,
-                  color: Color(0xFFB0BEC5),
-                  label: '--',
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (i) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
                 ),
-              )),
+              ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
                 child: Divider(color: Color(0xFFF1F1F1)),
@@ -313,95 +336,134 @@ final time = ts is Timestamp ? ts : null;
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
-              _buildChartBackground(List.generate(
-                6,
-                (i) => const _Bar(
-                  value: 0,
-                  color: Color(0xFFB0BEC5),
-                  label: '--',
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (i) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
                 ),
-              )),
+              ),
               const Padding(
-  padding: EdgeInsets.symmetric(vertical: 20),
-  child: Divider(color: Color(0xFFF1F1F1)),
-),
-const Text(
-  'Carbon Dioxide (CO₂)',
-  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-),
-const SizedBox(height: 20),
-_buildChartBackground(List.generate(
-  6,
-  (i) => const _Bar(
-    value: 0,
-    color: Color(0xFFB0BEC5),
-    label: '--',
-  ),
-)),
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(color: Color(0xFFF1F1F1)),
+              ),
+              const Text(
+                'Carbon Dioxide (CO₂)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (i) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
+              const Text(
+                'Nitrogen Dioxide (NO₂)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (_) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(color: Color(0xFFF1F1F1)),
+              ),
+
+              const Text(
+                'Ozone (O₃)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 20),
+              _buildChartBackground(
+                List.generate(
+                  6,
+                  (_) => const _Bar(
+                    value: 0,
+                    color: Color(0xFFB0BEC5),
+                    label: '--',
+                  ),
+                ),
+              ),
             ],
           ),
         ),
 
         const SizedBox(height: 30),
 
-        // Download placeholder 
-      //  Download (PDF) 
-Center(
-  child: InkWell(
-    onTap: () async {
-      final id = _selectedLocationId;
+        // Download placeholder
+        //  Download (PDF)
+        Center(
+          child: InkWell(
+            onTap: () async {
+              final id = _selectedLocationId;
 
-      if (id == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a location first'),
+              if (id == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please select a location first'),
+                  ),
+                );
+                return;
+              }
+
+              final locDoc = await FirebaseFirestore.instance
+                  .collection('locations')
+                  .doc(id)
+                  .get();
+
+              final locationName = (locDoc.data()?['name'] ?? id).toString();
+
+              await ReportService.downloadAirQualityReport(
+                locationId: id,
+                locationName: locationName,
+                context: context,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.file_download_outlined,
+                  color: primaryColor.withOpacity(0.6),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Download Air Quality Report',
+                  style: TextStyle(
+                    color: primaryColor.withOpacity(0.6),
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-        return;
-      }
-
-      final locDoc = await FirebaseFirestore.instance
-          .collection('locations')
-          .doc(id)
-          .get();
-
-      final locationName =
-          (locDoc.data()?['name'] ?? id).toString();
-
-      await ReportService.downloadAirQualityReport(
-        locationId: id,
-        locationName: locationName,
-        context: context,
-      );
-    },
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.file_download_outlined,
-          color: primaryColor.withOpacity(0.6),
-          size: 20,
         ),
-        const SizedBox(width: 8),
-        Text(
-          'Download Air Quality Report',
-          style: TextStyle(
-            color: primaryColor.withOpacity(0.6),
-            fontWeight: FontWeight.w500,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
 
         const SizedBox(height: 40),
       ],
     );
   }
 
-  //  build 
+  //  build
 
   @override
   Widget build(BuildContext context) {
@@ -430,22 +492,32 @@ Center(
                   final userData = userSnap.data?.data();
 
                   // ===== Name =====
-                  final fromDbName = (userData?['name'] ?? '').toString().trim();
+                  final fromDbName = (userData?['name'] ?? '')
+                      .toString()
+                      .trim();
                   final fallbackName =
                       (user.displayName?.trim().isNotEmpty ?? false)
-                          ? user.displayName!.trim()
-                          : 'Admin';
-                  final nameToShow = fromDbName.isNotEmpty ? fromDbName : fallbackName;
+                      ? user.displayName!.trim()
+                      : 'Admin';
+                  final nameToShow = fromDbName.isNotEmpty
+                      ? fromDbName
+                      : fallbackName;
 
                   // ===== Photo =====
-                  final photoUrl = (userData?['photoUrl'] ?? '').toString().trim();
+                  final photoUrl = (userData?['photoUrl'] ?? '')
+                      .toString()
+                      .trim();
                   final ImageProvider avatarProvider = photoUrl.isNotEmpty
                       ? NetworkImage(photoUrl)
                       : const AssetImage('assets/avatar.png');
 
                   // ===== locationId from users =====
-                  final fromDbLocId = (userData?['locationId'] ?? '').toString().trim();
-                  final String? nextId = fromDbLocId.isNotEmpty ? fromDbLocId : null;
+                  final fromDbLocId = (userData?['locationId'] ?? '')
+                      .toString()
+                      .trim();
+                  final String? nextId = fromDbLocId.isNotEmpty
+                      ? fromDbLocId
+                      : null;
 
                   // مزامنة محلية
                   if (nextId != _selectedLocationId) {
@@ -476,7 +548,9 @@ Center(
                               borderRadius: BorderRadius.circular(16),
                               onTap: _openEditProfile,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -511,7 +585,9 @@ Center(
                                 ),
                                 const SizedBox(width: 4),
 
-                                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                                StreamBuilder<
+                                  QuerySnapshot<Map<String, dynamic>>
+                                >(
                                   stream: FirebaseFirestore.instance
                                       .collection('locations')
                                       .where('isActive', isEqualTo: true)
@@ -541,14 +617,19 @@ Center(
 
                                     final String? safeValue =
                                         (_selectedLocationId != null &&
-                                                locDocs.any((d) => d.id == _selectedLocationId))
-                                            ? _selectedLocationId
-                                            : null;
+                                            locDocs.any(
+                                              (d) =>
+                                                  d.id == _selectedLocationId,
+                                            ))
+                                        ? _selectedLocationId
+                                        : null;
 
                                     // Responsive dropdown
                                     return Flexible(
                                       child: ConstrainedBox(
-                                        constraints: const BoxConstraints(maxWidth: 180),
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 180,
+                                        ),
                                         child: DropdownButtonHideUnderline(
                                           child: DropdownButton<String>(
                                             value: safeValue,
@@ -573,12 +654,14 @@ Center(
                                             items: locDocs.map((d) {
                                               final data = d.data();
                                               final name =
-                                                  (data['name'] ?? d.id).toString();
+                                                  (data['name'] ?? d.id)
+                                                      .toString();
                                               return DropdownMenuItem<String>(
                                                 value: d.id,
                                                 child: Text(
                                                   name,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   maxLines: 1,
                                                 ),
                                               );
@@ -586,8 +669,14 @@ Center(
                                             onChanged: (newId) async {
                                               if (newId == null) return;
 
-                                              setState(() => _selectedLocationId = newId);
-                                              await _saveLocationId(user, newId);
+                                              setState(
+                                                () =>
+                                                    _selectedLocationId = newId,
+                                              );
+                                              await _saveLocationId(
+                                                user,
+                                                newId,
+                                              );
                                             },
                                           ),
                                         ),
@@ -628,7 +717,7 @@ Center(
               if (_selectedLocationId == null) ...[
                 _buildPlaceholders(),
               ] else ...[
-                //  Air Quality Card (من Firestore) 
+                //  Air Quality Card (من Firestore)
                 StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance
                       .collection('air_quality_data')
@@ -641,16 +730,17 @@ Center(
                     }
 
                     final data = aqSnap.data!.data()!;
-                     final pol = data['pollutants'];
+                    final pol = data['pollutants'];
                     final aqi = (data['aqi'] ?? 0);
-                    final mainPollutant = (data['mainPollutant'] ?? '-').toString();
+                    final mainPollutant = (data['mainPollutant'] ?? '-')
+                        .toString();
                     String mainStatus = 'Unknown';
 
-if (pol != null && pol[mainPollutant] != null) {
-  final mainData = pol[mainPollutant];
-  mainStatus = (mainData['status'] ?? 'Unknown').toString();
-}
-final mainColor = _colorForLevel(mainStatus);
+                    if (pol != null && pol[mainPollutant] != null) {
+                      final mainData = pol[mainPollutant];
+                      mainStatus = (mainData['status'] ?? 'Unknown').toString();
+                    }
+                    final mainColor = _colorForLevel(mainStatus);
 
                     final ts = data['updateTime'] as Timestamp?;
                     String updatedText = 'Updated: -';
@@ -685,42 +775,41 @@ final mainColor = _colorForLevel(mainStatus);
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              
                               Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text(
-      mainStatus,
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: mainColor,
-      ),
-    ),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    mainStatus,
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: mainColor,
+                                    ),
+                                  ),
 
-    const SizedBox(height: 6),
+                                  const SizedBox(height: 6),
 
-    Text(
-      'AQI: ${aqi.toInt()}',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: primaryColor,
-      ),
-    ),
+                                  Text(
+                                    'AQI: ${aqi.toInt()}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: primaryColor,
+                                    ),
+                                  ),
 
-    const SizedBox(height: 6),
+                                  const SizedBox(height: 6),
 
-    Text(
-      'Main Pollutant: $mainPollutant\n$updatedText',
-      style: TextStyle(
-        color: Colors.grey[500],
-        fontSize: 12,
-        height: 1.5,
-      ),
-    ),
-  ],
-),
+                                  Text(
+                                    'Main Pollutant: $mainPollutant\n$updatedText',
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 12,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
 
                               Stack(
                                 alignment: Alignment.center,
@@ -732,7 +821,9 @@ final mainColor = _colorForLevel(mainStatus);
                                       value: (aqi / 150).clamp(0, 1).toDouble(),
                                       strokeWidth: 10,
                                       backgroundColor: const Color(0xFFF1F1F1),
-                                     valueColor: AlwaysStoppedAnimation(mainColor),
+                                      valueColor: AlwaysStoppedAnimation(
+                                        mainColor,
+                                      ),
                                     ),
                                   ),
                                   Column(
@@ -763,45 +854,45 @@ final mainColor = _colorForLevel(mainStatus);
 
                         const SizedBox(height: 30),
 
-                        //  Metrological Data (ثابتة ) 
+                        //  Metrological Data (ثابتة )
                         const _SectionTitle(
                           title: 'Metrological Data',
                           icon: Icons.cloud_outlined,
                         ),
                         const SizedBox(height: 15),
-                       GridView.count(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  crossAxisCount: 2,
-  mainAxisSpacing: 15,
-  crossAxisSpacing: 15,
-  childAspectRatio: 1.5,
-  children: [
-    _MetCard(
-      icon: Icons.compress,
-      title: 'Pressure',
-      value: '${data['Pressure'] ?? '--'} hPa',
-    ),
-    _MetCard(
-      icon: Icons.thermostat,
-      title: 'Temperature',
-      value: '${data['Temperature'] ?? '--'}°',
-    ),
-    _MetCard(
-      icon: Icons.air,
-      title: 'Wind speed',
-      value: '${data['wind_speed'] ?? '--'} km/h',
-    ),
-    _MetCard(
-      icon: Icons.water_drop_outlined,
-      title: 'Humidity',
-      value: '${data['Humidity'] ?? '--'}%',
-    ),
-  ],
-),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 15,
+                          crossAxisSpacing: 15,
+                          childAspectRatio: 1.5,
+                          children: [
+                            _MetCard(
+                              icon: Icons.compress,
+                              title: 'Pressure',
+                              value: '${data['Pressure'] ?? '--'} hPa',
+                            ),
+                            _MetCard(
+                              icon: Icons.thermostat,
+                              title: 'Temperature',
+                              value: '${data['Temperature'] ?? '--'}°',
+                            ),
+                            _MetCard(
+                              icon: Icons.air,
+                              title: 'Wind speed',
+                              value: '${data['wind_speed'] ?? '--'} km/h',
+                            ),
+                            _MetCard(
+                              icon: Icons.water_drop_outlined,
+                              title: 'Humidity',
+                              value: '${data['Humidity'] ?? '--'}%',
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 30),
 
-                        //  Air Pollutants Levels (ثابتة) 
+                        //  Air Pollutants Levels (ثابتة)
                         const _SectionTitle(
                           title: 'Air Pollutants Levels',
                           icon: Icons.bar_chart_rounded,
@@ -813,180 +904,252 @@ final mainColor = _colorForLevel(mainStatus);
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                        child: Column(
-  children: [
+                          child: Column(
+                            children: [
+                              _PollutantRow(
+                                label: 'Particulate Matter 2.5',
+                                value: (pol?['PM2_5']?['value'] ?? 0)
+                                    .toString(),
+                                status: (pol?['PM2_5']?['status'] ?? '--')
+                                    .toString(),
+                                color: _colorForLevel(
+                                  (pol?['PM2_5']?['status'] ?? '').toString(),
+                                ),
+                              ),
 
-_PollutantRow(
-  label: 'Particulate Matter 2.5',
-  value: (pol?['PM2_5']?['value'] ?? 0).toString(),
-  status: (pol?['PM2_5']?['status'] ?? '--').toString(),
-  color: _colorForLevel((pol?['PM2_5']?['status'] ?? '').toString()),
-),
+                              _PollutantRow(
+                                label: 'Particulate Matter 10',
+                                value: (pol?['PM10']?['value'] ?? 0).toString(),
+                                status: (pol?['PM10']?['status'] ?? '--')
+                                    .toString(),
+                                color: _colorForLevel(
+                                  (pol?['PM10']?['status'] ?? '').toString(),
+                                ),
+                              ),
 
-_PollutantRow(
-  label: 'Particulate Matter 10',
-  value: (pol?['PM10']?['value'] ?? 0).toString(),
-  status: (pol?['PM10']?['status'] ?? '--').toString(),
-  color: _colorForLevel((pol?['PM10']?['status'] ?? '').toString()),
-),
+                              _PollutantRow(
+                                label: 'Carbon Dioxide (CO₂)',
+                                value: (pol?['CO2']?['value'] ?? 0).toString(),
+                                status: (pol?['CO2']?['status'] ?? '--')
+                                    .toString(),
+                                color: _colorForLevel(
+                                  (pol?['CO2']?['status'] ?? '').toString(),
+                                ),
+                              ),
 
-_PollutantRow(
-  label: 'Carbon Dioxide (CO₂)',
-  value: (pol?['CO2']?['value'] ?? 0).toString(),
-  status: (pol?['CO2']?['status'] ?? '--').toString(),
-  color: _colorForLevel((pol?['CO2']?['status'] ?? '').toString()),
-),
-  ],
-),
+                              _PollutantRow(
+                                label: 'Nitrogen Dioxide (NO₂)',
+                                value: (pol?['NO2']?['value'] ?? 0).toString(),
+                                status: (pol?['NO2']?['status'] ?? '--')
+                                    .toString(),
+                                color: _colorForLevel(
+                                  (pol?['NO2']?['status'] ?? '').toString(),
+                                ),
+                              ),
+
+                              _PollutantRow(
+                                label: 'Ozone (O₃)',
+                                value: (pol?['O3']?['value'] ?? 0).toString(),
+                                status: (pol?['O3']?['status'] ?? '--')
+                                    .toString(),
+                                color: _colorForLevel(
+                                  (pol?['O3']?['status'] ?? '').toString(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
 
                         const SizedBox(height: 30),
 
-                        //   Forecasts (من Firestore) 
-                        const _SectionTitle(title: 'Forecasts', icon: Icons.show_chart),
-const SizedBox(height: 15),
+                        //   Forecasts (من Firestore)
+                        const _SectionTitle(
+                          title: 'Forecasts',
+                          icon: Icons.show_chart,
+                        ),
+                        const SizedBox(height: 15),
 
-StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-  stream: FirebaseFirestore.instance
-      .collection('predictions')
-      .doc(_selectedLocationId)
-      .snapshots(),
-  builder: (context, predSnap) {
-    if (!predSnap.hasData || predSnap.data?.data() == null) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Center(
-          child: Text(
-            'No forecast data available.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ),
-      );
-    }
+                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                          stream: FirebaseFirestore.instance
+                              .collection('predictions')
+                              .doc(_selectedLocationId)
+                              .snapshots(),
+                          builder: (context, predSnap) {
+                            if (!predSnap.hasData ||
+                                predSnap.data?.data() == null) {
+                              return Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'No forecast data available.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
 
-    final predData = predSnap.data!.data()!;
+                            final predData = predSnap.data!.data()!;
 
-// ===== PM2.5 =====
-List<dynamic> _safeList(dynamic data) {
-  if (data is List) return data;
-  if (data is Map) return [data];
-  return [];
-}
+                            // ===== PM2.5 =====
+                            List<dynamic> _safeList(dynamic data) {
+                              if (data is List) return data;
+                              if (data is Map) return [data];
+                              return [];
+                            }
 
-final pm25List = _safeList(predData['PM2_5Forecast']);
-final pm10List = _safeList(predData['PM10Forecast']);
-final co2List  = _safeList(predData['CO2Forecast']);
+                            final pm25List = _safeList(
+                              predData['PM2_5Forecast'],
+                            );
+                            final pm10List = _safeList(
+                              predData['PM10Forecast'],
+                            );
+                            final co2List = _safeList(predData['CO2Forecast']);
+                            final no2List = _safeList(predData['NO2Forecast']);
+                            final o3List = _safeList(predData['O3Forecast']);
 
-    final pm25Bars = _barsFromForecast(pm25List);
-    final pm10Bars = _barsFromForecast(pm10List);
-    final co2Bars = _barsFromForecast(co2List);
+                            final pm25Bars = _barsFromForecast(pm25List);
+                            final pm10Bars = _barsFromForecast(pm10List);
+                            final co2Bars = _barsFromForecast(co2List);
+                            final no2Bars = _barsFromForecast(no2List);
+                            final o3Bars = _barsFromForecast(o3List);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Particulate Matter 2.5',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildChartBackground(pm25Bars),
+                            return Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Particulate Matter 2.5',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(pm25Bars),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(color: Color(0xFFF1F1F1)),
-          ),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Divider(color: Color(0xFFF1F1F1)),
+                                  ),
 
-          const Text(
-            'Particulate Matter 10',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildChartBackground(pm10Bars),
+                                  const Text(
+                                    'Particulate Matter 10',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(pm10Bars),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(color: Color(0xFFF1F1F1)),
-          ),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Divider(color: Color(0xFFF1F1F1)),
+                                  ),
 
-          const Text(
-            'Carbon Dioxide (CO₂)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildChartBackground(co2Bars),
-        ],
-      ),
-    );
-  },
-),
+                                  const Text(
+                                    'Carbon Dioxide (CO₂)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(co2Bars),
 
-const SizedBox(height: 30),
+                                  const SizedBox(height: 20),
+                                  const Text(
+                                    'Nitrogen Dioxide (NO₂)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(no2Bars),
 
-Center(
-  child: InkWell(
-    onTap: () async {
-      if (_selectedLocationId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a location first')),
-        );
-        return;
-      }
+                                  const SizedBox(height: 20),
+                                  const Text(
+                                    'Ozone (O₃)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildChartBackground(o3Bars),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
 
-      // يجيب الموقع
-      final locDoc = await FirebaseFirestore.instance
-          .collection('locations')
-          .doc(_selectedLocationId)
-          .get();
+                        const SizedBox(height: 30),
 
-      final locationName =
-          (locDoc.data()?['name'] ?? _selectedLocationId).toString();
+                        Center(
+                          child: InkWell(
+                            onTap: () async {
+                              if (_selectedLocationId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please select a location first',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
 
-      await ReportService.downloadAirQualityReport(
-        locationId: _selectedLocationId!,
-        locationName: locationName,
-        context: context,
-      );
-    },
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.file_download_outlined,
-          color: primaryColor.withOpacity(0.6),
-          size: 20,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Download Air Quality Report',
-          style: TextStyle(
-            color: primaryColor.withOpacity(0.6),
-            fontWeight: FontWeight.w500,
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+                              // يجيب الموقع
+                              final locDoc = await FirebaseFirestore.instance
+                                  .collection('locations')
+                                  .doc(_selectedLocationId)
+                                  .get();
+
+                              final locationName =
+                                  (locDoc.data()?['name'] ??
+                                          _selectedLocationId)
+                                      .toString();
+
+                              await ReportService.downloadAirQualityReport(
+                                locationId: _selectedLocationId!,
+                                locationName: locationName,
+                                context: context,
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.file_download_outlined,
+                                  color: primaryColor.withOpacity(0.6),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Download Air Quality Report',
+                                  style: TextStyle(
+                                    color: primaryColor.withOpacity(0.6),
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
                         const SizedBox(height: 40),
                       ],
@@ -1021,11 +1184,7 @@ class _HeaderIcon extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onPressed,
-          icon: Icon(
-            icon,
-            color: const Color(0xFF32345F),
-            size: 26,
-          ),
+          icon: Icon(icon, color: const Color(0xFF32345F), size: 26),
         ),
         if (hasBadge)
           Positioned(
@@ -1141,10 +1300,7 @@ class _PollutantRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF4B4B4B),
-              ),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF4B4B4B)),
             ),
           ),
           SizedBox(
@@ -1187,15 +1343,20 @@ class _Bar extends StatelessWidget {
   final double value;
   final Color color;
   final String label;
+  final double maxValue; 
+
   const _Bar({
     required this.value,
     required this.color,
     required this.label,
+    this.maxValue = 100,
   });
 
   @override
   Widget build(BuildContext context) {
-    final double scaledHeight = (value / 80) * 110;
+    final double scaledHeight = maxValue == 0
+        ? 0
+        : ((value / maxValue) * 110).clamp(0, 110);
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -1208,10 +1369,7 @@ class _Bar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
       ],
     );
   }

@@ -19,6 +19,8 @@ class _AdminSetThresholdsPageState extends State<AdminSetThresholdsPage> {
     _PollutantItem(label: 'CO₂ Limit', docId: 'CO2'),
     _PollutantItem(label: 'PM10 Limit', docId: 'PM10'),
     _PollutantItem(label: 'PM2.5 Limit', docId: 'PM2_5'),
+    _PollutantItem(label: 'NO₂ Limit', docId: 'NO2'),
+    _PollutantItem(label: 'O₃ Limit', docId: 'O3'),
   ];
 
   final Map<String, TextEditingController> _safeCtrl = {};

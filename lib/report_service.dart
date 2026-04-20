@@ -51,17 +51,25 @@ class ReportService {
       final pollutants = (aq['pollutants'] is Map<String, dynamic>)
           ? aq['pollutants'] as Map<String, dynamic>
           : <String, dynamic>{};
-final pm25Forecast = (pred['PM2_5Forecast'] is List)
-    ? (pred['PM2_5Forecast'] as List).cast<dynamic>()
-    : <dynamic>[];
+      final pm25Forecast = (pred['PM2_5Forecast'] is List)
+          ? (pred['PM2_5Forecast'] as List).cast<dynamic>()
+          : <dynamic>[];
 
-final pm10Forecast = (pred['PM10Forecast'] is List)
-    ? (pred['PM10Forecast'] as List).cast<dynamic>()
-    : <dynamic>[];
+      final pm10Forecast = (pred['PM10Forecast'] is List)
+          ? (pred['PM10Forecast'] as List).cast<dynamic>()
+          : <dynamic>[];
 
-final co2Forecast = (pred['CO2Forecast'] is List)
-    ? (pred['CO2Forecast'] as List).cast<dynamic>()
-    : <dynamic>[];
+      final co2Forecast = (pred['CO2Forecast'] is List)
+          ? (pred['CO2Forecast'] as List).cast<dynamic>()
+          : <dynamic>[];
+
+      final no2Forecast = (pred['NO2Forecast'] is List)
+          ? (pred['NO2Forecast'] as List).cast<dynamic>()
+          : <dynamic>[];
+
+      final o3Forecast = (pred['O3Forecast'] is List)
+          ? (pred['O3Forecast'] as List).cast<dynamic>()
+          : <dynamic>[];
 
       // إنشاء PDF
       final pdf = pw.Document();
@@ -106,12 +114,14 @@ final co2Forecast = (pred['CO2Forecast'] is List)
               pw.SizedBox(height: 16),
 
               _sectionTitle('Forecasts'),
-pw.SizedBox(height: 8),
-_forecastTable(title: 'PM2.5 Forecast', list: pm25Forecast),
-pw.SizedBox(height: 10),
-_forecastTable(title: 'PM10 Forecast', list: pm10Forecast),
-pw.SizedBox(height: 10),
-_forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
+              pw.SizedBox(height: 8),
+              _forecastTable(title: 'PM2.5 Forecast', list: pm25Forecast),
+              pw.SizedBox(height: 10),
+              _forecastTable(title: 'PM10 Forecast', list: pm10Forecast),
+              pw.SizedBox(height: 10),
+              _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
+              _forecastTable(title: 'NO₂ Forecast', list: no2Forecast),
+              _forecastTable(title: 'O₃ Forecast', list: o3Forecast),
 
               pw.SizedBox(height: 18),
               pw.Divider(),
@@ -136,15 +146,14 @@ _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
 
       // فتح الملف
       await OpenFilex.open(file.path);
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating report: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error generating report: $e')));
     }
   }
 
-  // PDF Widgets 
+  // PDF Widgets
 
   static pw.Widget _header({
     required String locationName,
@@ -164,7 +173,10 @@ _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
             children: [
               pw.Text(
                 'Air Quality Report',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
               pw.SizedBox(height: 4),
               pw.Text('Location: $locationName'),
@@ -194,8 +206,10 @@ _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
           children: [
             pw.Padding(
               padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(e.key,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              child: pw.Text(
+                e.key,
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              ),
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.all(6),
@@ -221,8 +235,10 @@ _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
     }
 
     add('PM2_5', 'PM2.5');
-add('PM10', 'PM10');
-add('CO2', 'CO₂');
+    add('PM10', 'PM10');
+    add('CO2', 'CO₂');
+    add('NO2', 'NO₂');
+    add('O3', 'O₃');
 
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.6),
@@ -231,9 +247,9 @@ add('CO2', 'CO₂');
           decoration: const pw.BoxDecoration(color: PdfColors.grey200),
           children: [_th('Pollutant'), _th('Value'), _th('Level')],
         ),
-        ...rows.map((r) => pw.TableRow(
-              children: [_td(r[0]), _td(r[1]), _td(r[2])],
-            )),
+        ...rows.map(
+          (r) => pw.TableRow(children: [_td(r[0]), _td(r[1]), _td(r[2])]),
+        ),
       ],
     );
   }
@@ -246,7 +262,7 @@ add('CO2', 'CO₂');
       pw.TableRow(
         decoration: const pw.BoxDecoration(color: PdfColors.grey200),
         children: [_th('Time'), _th('Value'), _th('Level')],
-      )
+      ),
     ];
 
     for (final item in list.take(8)) {
@@ -259,9 +275,9 @@ add('CO2', 'CO₂');
       final valueStr = (m['value'] ?? '--').toString();
       final levelStr = (m['status'] ?? '--').toString();
 
-      rows.add(pw.TableRow(
-        children: [_td(timeStr), _td(valueStr), _td(levelStr)],
-      ));
+      rows.add(
+        pw.TableRow(children: [_td(timeStr), _td(valueStr), _td(levelStr)]),
+      );
     }
 
     if (rows.length == 1) {
@@ -282,15 +298,12 @@ add('CO2', 'CO₂');
   }
 
   static pw.Widget _th(String text) => pw.Padding(
-        padding: const pw.EdgeInsets.all(6),
-        child: pw.Text(text,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-      );
+    padding: const pw.EdgeInsets.all(6),
+    child: pw.Text(text, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+  );
 
-  static pw.Widget _td(String text) => pw.Padding(
-        padding: const pw.EdgeInsets.all(6),
-        child: pw.Text(text),
-      );
+  static pw.Widget _td(String text) =>
+      pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Text(text));
 
   static num? _asNum(dynamic v) {
     if (v is num) return v;
