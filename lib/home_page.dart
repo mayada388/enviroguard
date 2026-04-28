@@ -766,8 +766,8 @@ class _HomePageState extends State<HomePage> {
                       Color cPm25 = const Color(0xFFB0BEC5);
                       String vPm10 = '--', sPm10 = '--';
                       Color cPm10 = const Color(0xFFB0BEC5);
-                      String vCO2 = '--', sCO2 = '--';
-                      Color cCO2 = const Color(0xFFB0BEC5);
+                      String vCO = '--', sCO = '--';
+                      Color cCO = const Color(0xFFB0BEC5);
                       String vNO2 = '--', sNO2 = '--';
                       Color cNO2 = const Color(0xFFB0BEC5);
                       String vO3 = '--', sO3 = '--';
@@ -779,7 +779,7 @@ class _HomePageState extends State<HomePage> {
                       if (pol != null) {
                         final pm25 = _asMap(pol['PM2_5']);
                         final pm10 = _asMap(pol['PM10']);
-                        final co2 = _asMap(pol['CO2']);
+                        final co = _asMap(pol['CO']);
                         final no2 = _asMap(pol['NO2']);
                         final o3 = _asMap(pol['O3']);
 
@@ -793,10 +793,10 @@ class _HomePageState extends State<HomePage> {
                           sPm10 = (pm10['status'] ?? '--').toString();
                           cPm10 = _colorForLevel(sPm10);
                         }
-                        if (co2 != null) {
-                          vCO2 = (co2['value'] ?? '--').toString();
-                          sCO2 = (co2['status'] ?? '--').toString();
-                          cCO2 = _colorForLevel(sCO2);
+                        if (co != null) {
+                          vCO = (co['value'] ?? '--').toString();
+                          sCO = (co['status'] ?? '--').toString();
+                          cCO = _colorForLevel(sCO);
                         }
                         if (no2 != null) {
                           vNO2 = (no2['value'] ?? '--').toString();
@@ -832,10 +832,10 @@ class _HomePageState extends State<HomePage> {
                               color: cPm10,
                             ),
                             _PollutantRow(
-                              label: 'Carbon Dioxide (CO2)',
-                              value: vCO2,
-                              status: sCO2,
-                              color: cCO2,
+                              label: 'Carbon Monoxide (CO)',
+                              value: vCO,
+                              status: sCO,
+                              color: cCO,
                             ),
                             _PollutantRow(
                               label: 'Nitrogen Dioxide (NO2)',
@@ -923,7 +923,7 @@ class _HomePageState extends State<HomePage> {
                           ),
 
                           const Text(
-                            'Carbon Dioxide (CO2)',
+                            'Carbon Monoxide (CO)',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -1010,7 +1010,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
 
                                 const Text(
-                                  'Carbon Dioxide (CO2)',
+                                  'Carbon Monoxide (CO)',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -1085,7 +1085,7 @@ class _HomePageState extends State<HomePage> {
 
                         final pm25List = _safeList(predData['PM2_5Forecast']);
                         final pm10List = _safeList(predData['PM10Forecast']);
-                        final co2List = _safeList(predData['CO2Forecast']);
+                        final coList = _safeList(predData['COForecast']);
                         final no2List = _safeList(predData['NO2Forecast']);
                         final o3List = _safeList(predData['O3Forecast']);
 
@@ -1111,7 +1111,7 @@ class _HomePageState extends State<HomePage> {
                               )
                             : _barsFromForecast(pm10List);
 
-                        final co2Bars = co2List.isEmpty
+                        final coBars = coList.isEmpty
                             ? List.generate(
                                 6,
                                 (_) => const _Bar(
@@ -1120,7 +1120,7 @@ class _HomePageState extends State<HomePage> {
                                   label: '--',
                                 ),
                               )
-                            : _barsFromForecast(co2List);
+                            : _barsFromForecast(coList);
 
                         final no2Bars = no2List.isEmpty
                             ? List.generate(
@@ -1184,14 +1184,14 @@ class _HomePageState extends State<HomePage> {
                               ),
 
                               const Text(
-                                'Carbon Dioxide (CO2)',
+                                'Carbon Monoxide (CO)',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              _buildChartBackground(co2Bars),
+                              _buildChartBackground(coBars),
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 20),
                                 child: Divider(color: Color(0xFFF1F1F1)),

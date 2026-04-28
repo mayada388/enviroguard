@@ -59,8 +59,8 @@ class ReportService {
           ? (pred['PM10Forecast'] as List).cast<dynamic>()
           : <dynamic>[];
 
-      final co2Forecast = (pred['CO2Forecast'] is List)
-          ? (pred['CO2Forecast'] as List).cast<dynamic>()
+      final coForecast = (pred['COForecast'] is List)
+          ? (pred['COForecast'] as List).cast<dynamic>()
           : <dynamic>[];
 
       final no2Forecast = (pred['NO2Forecast'] is List)
@@ -119,7 +119,7 @@ class ReportService {
               pw.SizedBox(height: 10),
               _forecastTable(title: 'PM10 Forecast', list: pm10Forecast),
               pw.SizedBox(height: 10),
-              _forecastTable(title: 'CO₂ Forecast', list: co2Forecast),
+              _forecastTable(title: 'CO Forecast', list: coForecast),
               _forecastTable(title: 'NO₂ Forecast', list: no2Forecast),
               _forecastTable(title: 'O₃ Forecast', list: o3Forecast),
 
@@ -236,7 +236,7 @@ class ReportService {
 
     add('PM2_5', 'PM2.5');
     add('PM10', 'PM10');
-    add('CO2', 'CO₂');
+    add('CO', 'CO');
     add('NO2', 'NO₂');
     add('O3', 'O₃');
 

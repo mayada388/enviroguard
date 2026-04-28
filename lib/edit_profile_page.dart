@@ -42,6 +42,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     "Children (Under 12)",
     "Elderly (60+)",
     "Low Immunity",
+    "Sinusitis",
   ];
 
   final Set<String> _selectedConditions = {};
@@ -50,7 +51,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 final List<String> _pollutantAlerts = [
   "PM2_5",
   "PM10",
-  "CO2",
+  "CO",
+  "NO2",
+  "O3"
   "Forecast (10 min)",
   "Rapid Change",
 ];
@@ -60,16 +63,39 @@ final List<String> _pollutantAlerts = [
   final Map<String, int> _autoAlertCount = {};
   final Set<String> _autoRecommendedAlerts = {};
 final Map<String, List<String>> _recommendedAlertsByCondition = {
-  "Asthma": ["PM2_5", "PM10", "Forecast (10 min)", "Rapid Change"],
-  "COPD": ["PM2_5", "PM10", "Forecast (10 min)"],
-  "Bronchitis": ["PM2_5", "PM10", "Forecast (10 min)"],
-  "Allergies": ["PM10", "PM2_5", "Rapid Change"],
-  "Heart Disease": ["PM2_5", "CO2", "Forecast (10 min)"],
-  "Hypertension": ["PM2_5", "CO2", "Forecast (10 min)"],
-  "Pregnancy": ["PM2_5", "PM10", "CO2", "Forecast (10 min)"],
-  "Children (Under 12)": ["PM2_5", "PM10", "Forecast (10 min)"],
-  "Elderly (60+)": ["PM2_5", "PM10", "Forecast (10 min)"],
-  "Low Immunity": ["PM2_5", "Forecast (10 min)"],
+  //  Asthma
+  "Asthma": ["PM2_5", "O3", "NO2","CO"],
+
+  //  COPD
+  "COPD": ["PM2_5", "NO2","CO"],
+
+  //  Bronchitis
+  "Bronchitis": ["PM2_5", "PM10"],
+
+  //  Allergies
+  "Allergies": ["PM10", "O3"],
+
+  //  Heart Disease
+  "Heart Disease": ["PM2_5", "NO2", "O3"],
+
+  // ضغط الدم
+  "Hypertension": ["PM2_5", "NO2"],
+
+  // Pregnancy
+  "Pregnancy": ["PM2_5", "NO2"],
+
+  // Children
+  "Children (Under 12)": ["PM2_5", "NO2"],
+
+  //  Elderly
+  "Elderly (60+)": ["PM2_5", "NO2", "O3"],
+
+  //  Low Immunity
+  "Low Immunity": ["PM2_5"],
+
+  // Sinusitis 
+  "Sinusitis": ["PM10", "NO2"],
+
 };
 
   void _applyRecommendedAlertsFor(String condition) {
@@ -128,8 +154,12 @@ String _displayAlertName(String p) {
       return 'PM2.5';
     case 'PM10':
       return 'PM10';
-    case 'CO2':
-      return 'CO₂';
+    case 'CO':
+      return 'CO';
+          case 'NO2':
+      return 'NO₂';
+    case 'O3':
+      return 'O₃';
     default:
       return p;
   }
@@ -138,6 +168,10 @@ String _displayAlertName(String p) {
   @override
   void initState() {
     super.initState();
+
+      for (final c in _conditions) {
+  _recommendedAlertsByCondition[c]?.addAll(['Forecast (10 min)', 'Rapid Change']);
+}
     _loadProfileFromFirestore();
   }
 

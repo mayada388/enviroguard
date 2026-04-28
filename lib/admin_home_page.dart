@@ -275,7 +275,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
 
               _PollutantRow(
-                label: 'Carbon Dioxide (CO₂)',
+                label: 'Carbon Monoxide (CO)',
                 value: '--',
                 status: '—',
                 color: Color(0xFFB0BEC5),
@@ -351,7 +351,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 child: Divider(color: Color(0xFFF1F1F1)),
               ),
               const Text(
-                'Carbon Dioxide (CO₂)',
+                'Carbon Monoxide (CO)',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 20),
@@ -918,12 +918,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                               ),
 
                               _PollutantRow(
-                                label: 'Carbon Dioxide (CO₂)',
-                                value: (pol?['CO2']?['value'] ?? 0).toString(),
-                                status: (pol?['CO2']?['status'] ?? '--')
+                                label: 'Carbon Monoxide (CO)',
+                                value: (pol?['CO']?['value'] ?? 0).toString(),
+                                status: (pol?['CO']?['status'] ?? '--')
                                     .toString(),
                                 color: _colorForLevel(
-                                  (pol?['CO2']?['status'] ?? '').toString(),
+                                  (pol?['CO']?['status'] ?? '').toString(),
                                 ),
                               ),
 
@@ -1000,13 +1000,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             final pm10List = _safeList(
                               predData['PM10Forecast'],
                             );
-                            final co2List = _safeList(predData['CO2Forecast']);
+                            final coList = _safeList(predData['COForecast']);
                             final no2List = _safeList(predData['NO2Forecast']);
                             final o3List = _safeList(predData['O3Forecast']);
 
                             final pm25Bars = _barsFromForecast(pm25List);
                             final pm10Bars = _barsFromForecast(pm10List);
-                            final co2Bars = _barsFromForecast(co2List);
+                            final coBars = _barsFromForecast(coList);
                             final no2Bars = _barsFromForecast(no2List);
                             final o3Bars = _barsFromForecast(o3List);
 
@@ -1050,14 +1050,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                   ),
 
                                   const Text(
-                                    'Carbon Dioxide (CO₂)',
+                                    'Carbon Monoxide (CO)',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   const SizedBox(height: 20),
-                                  _buildChartBackground(co2Bars),
+                                  _buildChartBackground(coBars),
 
                                   const SizedBox(height: 20),
                                   const Text(
