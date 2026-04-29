@@ -24,7 +24,7 @@ dependencies:
   http: ^1.6.0
   awesome_dialog: ^3.3.0
   dropdown_search: ^6.0.2
-
+  rxdart: ^0.27.0
   # ================= PDF Download =================
   pdf: ^3.11.0
   printing: ^5.13.4

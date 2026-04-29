@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_page.dart';
-import 'home_page.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'notifications_page.dart';
 class AlertsPage extends StatefulWidget {
   const AlertsPage({super.key});
 
@@ -11,34 +11,33 @@ class AlertsPage extends StatefulWidget {
 }
 
 class _AlertsPageState extends State<AlertsPage> {
+
   @override
-  void initState() {
-    super.initState();
-    _ensureDefaultOff();
+void initState() {
+  super.initState();
+  _checkAndGoToNotificationsIfEnabled();
+}
+
+Future<void> _checkAndGoToNotificationsIfEnabled() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final doc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .get();
+
+  final enabled = doc.data()?['notificationsEnabled'] ?? false;
+
+  if (!mounted) return;
+
+  if (enabled) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsPage()),
+    );
   }
-
-  Future<void> _ensureDefaultOff() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('notificationsEnabled') == null) {
-      await prefs.setBool('notificationsEnabled', false);
-    }
-  }
-
-  Future<void> _checkAndGoHomeIfEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    final enabled = prefs.getBool('notificationsEnabled') ?? false;
-
-    if (!mounted) return;
-
-    if (enabled) {
-      
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-        (route) => false,
-      );
-    }
-  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +90,9 @@ class _AlertsPageState extends State<AlertsPage> {
                     context,
                     MaterialPageRoute(builder: (_) => const SettingsPage()),
                   );
-
-                  if (changed == true) {
-                    await _checkAndGoHomeIfEnabled();
-                  }
+if (changed == true) {
+  await _checkAndGoToNotificationsIfEnabled();
+}
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B3E66),
