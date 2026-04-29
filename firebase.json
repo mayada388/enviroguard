@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"enviroguard-1","appId":"1:79247422623:android:58d247cc86ebf7c0ff1eaa","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"enviroguard-1","configurations":{"android":"1:79247422623:android:58d247cc86ebf7c0ff1eaa","ios":"1:79247422623:ios:8e5715f6bcd321d9ff1eaa","macos":"1:79247422623:ios:8e5715f6bcd321d9ff1eaa","web":"1:79247422623:web:5498779e260fd293ff1eaa","windows":"1:79247422623:web:289b0d0f6bafde14ff1eaa"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "enviroguard-1",
+          "appId": "1:79247422623:android:58d247cc86ebf7c0ff1eaa",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "enviroguard-1",
+          "configurations": {
+            "android": "1:79247422623:android:58d247cc86ebf7c0ff1eaa",
+            "ios": "1:79247422623:ios:8e5715f6bcd321d9ff1eaa",
+            "macos": "1:79247422623:ios:8e5715f6bcd321d9ff1eaa",
+            "web": "1:79247422623:web:5498779e260fd293ff1eaa",
+            "windows": "1:79247422623:web:289b0d0f6bafde14ff1eaa"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}
