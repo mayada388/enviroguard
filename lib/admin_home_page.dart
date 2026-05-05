@@ -789,7 +789,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                                   const SizedBox(height: 6),
 
-
                                   Text(
                                     'Main Pollutant: $mainPollutant\n$updatedText',
                                     style: TextStyle(
@@ -959,14 +958,17 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         ),
                         const SizedBox(height: 15),
 
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                           stream: FirebaseFirestore.instance
                               .collection('predictions')
                               .doc(_selectedLocationId)
+                              .collection('forecast_readings')
+                              .orderBy('forecast_time')
+                              .limit(3)
                               .snapshots(),
                           builder: (context, predSnap) {
                             if (!predSnap.hasData ||
-                                predSnap.data?.data() == null) {
+                                predSnap.data!.docs.isEmpty) {
                               return Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
@@ -985,24 +987,44 @@ class _AdminHomePageState extends State<AdminHomePage> {
                               );
                             }
 
-                            final predData = predSnap.data!.data()!;
+                            final forecastDocs = predSnap.data!.docs;
+                            final forecastList = forecastDocs
+                                .map((d) => d.data())
+                                .toList();
 
-                            // ===== PM2.5 =====
-                            List<dynamic> _safeList(dynamic data) {
-                              if (data is List) return data;
-                              if (data is Map) return [data];
-                              return [];
+                            List<dynamic> _pollutantList(
+                              String valueKey,
+                              String statusKey,
+                            ) {
+                              return forecastList.map((map) {
+                                return {
+                                  'value': map[valueKey],
+                                  'status': map[statusKey],
+                                  'time': map['forecast_time'],
+                                };
+                              }).toList();
                             }
 
-                            final pm25List = _safeList(
-                              predData['PM2_5Forecast'],
+                            final pm25List = _pollutantList(
+                              'PM2_5_value',
+                              'PM2_5_status',
                             );
-                            final pm10List = _safeList(
-                              predData['PM10Forecast'],
+                            final pm10List = _pollutantList(
+                              'PM10_value',
+                              'PM10_status',
                             );
-                            final coList = _safeList(predData['COForecast']);
-                            final no2List = _safeList(predData['NO2Forecast']);
-                            final o3List = _safeList(predData['O3Forecast']);
+                            final coList = _pollutantList(
+                              'CO_value',
+                              'CO_status',
+                            );
+                            final no2List = _pollutantList(
+                              'NO2_value',
+                              'NO2_status',
+                            );
+                            final o3List = _pollutantList(
+                              'O3_value',
+                              'O3_status',
+                            );
 
                             final pm25Bars = _barsFromForecast(pm25List);
                             final pm10Bars = _barsFromForecast(pm10List);
@@ -1333,7 +1355,7 @@ class _Bar extends StatelessWidget {
   final double value;
   final Color color;
   final String label;
-  final double maxValue; 
+  final double maxValue;
 
   const _Bar({
     required this.value,

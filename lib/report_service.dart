@@ -37,7 +37,7 @@ class ReportService {
       final pred = predDoc.data() ?? {};
 
       // تجهيز القيم
-      final aqi = _asNum(aq['aqi']) ?? 0;
+      final aqi = _asNum(aq['mainPollutantValue']) ?? 0;
       final mainPollutant = (aq['mainPollutant'] ?? '--').toString();
 
       final updateTs = aq['updateTime'];
@@ -48,28 +48,14 @@ class ReportService {
           ? aq['met'] as Map<String, dynamic>
           : <String, dynamic>{};
 
-      final pollutants = (aq['pollutants'] is Map<String, dynamic>)
-          ? aq['pollutants'] as Map<String, dynamic>
+      final pollutants = (aq['pollutants'] is Map)
+          ? Map<String, dynamic>.from(aq['pollutants'])
           : <String, dynamic>{};
-      final pm25Forecast = (pred['PM2_5Forecast'] is List)
-          ? (pred['PM2_5Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
-
-      final pm10Forecast = (pred['PM10Forecast'] is List)
-          ? (pred['PM10Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
-
-      final coForecast = (pred['COForecast'] is List)
-          ? (pred['COForecast'] as List).cast<dynamic>()
-          : <dynamic>[];
-
-      final no2Forecast = (pred['NO2Forecast'] is List)
-          ? (pred['NO2Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
-
-      final o3Forecast = (pred['O3Forecast'] is List)
-          ? (pred['O3Forecast'] as List).cast<dynamic>()
-          : <dynamic>[];
+      final pm25Forecast = _forecastList(pred['PM2_5Forecast']);
+      final pm10Forecast = _forecastList(pred['PM10Forecast']);
+      final coForecast = _forecastList(pred['COForecast']);
+      final no2Forecast = _forecastList(pred['NO2Forecast']);
+      final o3Forecast = _forecastList(pred['O3Forecast']);
 
       // إنشاء PDF
       final pdf = pw.Document();
@@ -309,6 +295,12 @@ class ReportService {
     if (v is num) return v;
     if (v is String) return num.tryParse(v);
     return null;
+  }
+
+  static List<dynamic> _forecastList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map) return [Map<String, dynamic>.from(data)];
+    return [];
   }
 
   static String sanitizeFileName(String s) {

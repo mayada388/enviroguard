@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'alerts_page.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
 import 'edit_profile_page.dart';
-
 import 'report_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -118,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: 25,
                     child: Text(
-                    '${(maxValue - (index * (maxValue / 4))).round()}',
+                      '${(maxValue - (index * (maxValue / 4))).round()}',
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                   ),
@@ -370,17 +368,23 @@ class _HomePageState extends State<HomePage> {
                                       // Dropdown locations
                                       Center(
                                         child: Wrap(
-                                            alignment: WrapAlignment.center,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: 6, // مسافة بين العناصر
-                                        //  mainAxisSize: MainAxisSize.min,
+                                          alignment: WrapAlignment.center,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          spacing: 6, // مسافة بين العناصر
+                                          //  mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(
-                                              Icons.location_on_outlined,
-                                              size: 18,
-                                              color: Colors.grey[600],
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 2,
+                                              ),
+                                              child: Icon(
+                                                Icons.location_on_outlined,
+                                                size: 16,
+                                                color: Colors.grey[600],
+                                              ),
                                             ),
-                                            const SizedBox(width: 6),
+                                            const SizedBox(width: 4),
                                             StreamBuilder<
                                               QuerySnapshot<
                                                 Map<String, dynamic>
@@ -626,7 +630,7 @@ class _HomePageState extends State<HomePage> {
                                       color: mainColor,
                                     ),
                                   ),
-                                 
+
                                   const SizedBox(height: 6),
                                   Text(
                                     'Main Pollutant: $mainPollutant\n$updatedText',
@@ -944,14 +948,16 @@ class _HomePageState extends State<HomePage> {
                       ),
                     )
                   else
-                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: FirebaseFirestore.instance
                           .collection('predictions')
                           .doc(locationId)
+                          .collection('forecast_readings')
+                          .orderBy('forecast_time')
+                          .limit(3)
                           .snapshots(),
                       builder: (context, predSnap) {
-                        if (!predSnap.hasData ||
-                            predSnap.data?.data() == null) {
+                        if (!predSnap.hasData || predSnap.data!.docs.isEmpty) {
                           return Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -1074,8 +1080,6 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
 
-                        final predData = predSnap.data!.data()!;
-
                         List<dynamic> _safeList(dynamic data) {
                           if (data is List) return data;
                           if (data is Map)
@@ -1083,11 +1087,38 @@ class _HomePageState extends State<HomePage> {
                           return [];
                         }
 
-                        final pm25List = _safeList(predData['PM2_5Forecast']);
-                        final pm10List = _safeList(predData['PM10Forecast']);
-                        final coList = _safeList(predData['COForecast']);
-                        final no2List = _safeList(predData['NO2Forecast']);
-                        final o3List = _safeList(predData['O3Forecast']);
+                        final forecastDocs = predSnap.data!.docs;
+                        final forecastList = forecastDocs
+                            .map((d) => d.data())
+                            .toList();
+
+                        List<dynamic> _pollutantList(
+                          String valueKey,
+                          String statusKey,
+                        ) {
+                          return forecastList.map((map) {
+                            return {
+                              'value': map[valueKey],
+                              'status': map[statusKey],
+                              'time': map['forecast_time'],
+                            };
+                          }).toList();
+                        }
+
+                        final pm25List = _pollutantList(
+                          'PM2_5_value',
+                          'PM2_5_status',
+                        );
+                        final pm10List = _pollutantList(
+                          'PM10_value',
+                          'PM10_status',
+                        );
+                        final coList = _pollutantList('CO_value', 'CO_status');
+                        final no2List = _pollutantList(
+                          'NO2_value',
+                          'NO2_status',
+                        );
+                        final o3List = _pollutantList('O3_value', 'O3_status');
 
                         final pm25Bars = pm25List.isEmpty
                             ? List.generate(

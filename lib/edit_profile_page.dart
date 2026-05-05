@@ -1,6 +1,4 @@
-
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,7 +13,6 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  
   final _formKey = GlobalKey<FormState>();
 
   final _nameCtrl = TextEditingController();
@@ -30,7 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   User? get _user => FirebaseAuth.instance.currentUser;
 
-  ///  HEALTH CONDITIONS 
+  ///  HEALTH CONDITIONS
   final List<String> _conditions = [
     "Asthma",
     "COPD",
@@ -47,56 +44,54 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   final Set<String> _selectedConditions = {};
 
-  ///  PERSONAL ALERTS 
-final List<String> _pollutantAlerts = [
-  "PM2_5",
-  "PM10",
-  "CO",
-  "NO2",
-  "O3"
-  "Forecast (10 min)",
-  "Rapid Change",
-];
+  ///  PERSONAL ALERTS
+  final List<String> _pollutantAlerts = [
+    "PM2_5",
+    "PM10",
+    "CO",
+    "NO2",
+    "O3",
+    "Rapid Change",
+  ];
 
   final Set<String> _selectedAlerts = {};
   final Set<String> _manualAlerts = {};
   final Map<String, int> _autoAlertCount = {};
   final Set<String> _autoRecommendedAlerts = {};
-final Map<String, List<String>> _recommendedAlertsByCondition = {
-  //  Asthma
-  "Asthma": ["PM2_5", "O3", "NO2","CO"],
+  final Map<String, List<String>> _recommendedAlertsByCondition = {
+    //  Asthma
+    "Asthma": ["PM2_5", "O3", "NO2", "CO"],
 
-  //  COPD
-  "COPD": ["PM2_5", "NO2","CO"],
+    //  COPD
+    "COPD": ["PM2_5", "NO2", "CO"],
 
-  //  Bronchitis
-  "Bronchitis": ["PM2_5", "PM10"],
+    //  Bronchitis
+    "Bronchitis": ["PM2_5", "PM10"],
 
-  //  Allergies
-  "Allergies": ["PM10", "O3"],
+    //  Allergies
+    "Allergies": ["PM10", "O3"],
 
-  //  Heart Disease
-  "Heart Disease": ["PM2_5", "NO2", "O3"],
+    //  Heart Disease
+    "Heart Disease": ["PM2_5", "NO2", "O3"],
 
-  // ضغط الدم
-  "Hypertension": ["PM2_5", "NO2"],
+    // ضغط الدم
+    "Hypertension": ["PM2_5", "NO2"],
 
-  // Pregnancy
-  "Pregnancy": ["PM2_5", "NO2"],
+    // Pregnancy
+    "Pregnancy": ["PM2_5", "NO2"],
 
-  // Children
-  "Children (Under 12)": ["PM2_5", "NO2"],
+    // Children
+    "Children (Under 12)": ["PM2_5", "NO2"],
 
-  //  Elderly
-  "Elderly (60+)": ["PM2_5", "NO2", "O3"],
+    //  Elderly
+    "Elderly (60+)": ["PM2_5", "NO2", "O3"],
 
-  //  Low Immunity
-  "Low Immunity": ["PM2_5"],
+    //  Low Immunity
+    "Low Immunity": ["PM2_5"],
 
-  // Sinusitis 
-  "Sinusitis": ["PM10", "NO2"],
-
-};
+    // Sinusitis
+    "Sinusitis": ["PM10", "NO2"],
+  };
 
   void _applyRecommendedAlertsFor(String condition) {
     final rec = _recommendedAlertsByCondition[condition];
@@ -132,46 +127,45 @@ final Map<String, List<String>> _recommendedAlertsByCondition = {
     }
   }
 
-  ///  OTHER SETTINGS 
+  ///  OTHER SETTINGS
   bool _quietHours = false;
-  bool _tips = true;
 
   TimeOfDay _start = const TimeOfDay(hour: 22, minute: 0);
   TimeOfDay _end = const TimeOfDay(hour: 7, minute: 0);
 
-TimeOfDay _fromHHmm(String s, TimeOfDay fallback) {
-  final parts = s.split(':');
-  if (parts.length != 2) return fallback;
-  final h = int.tryParse(parts[0]);
-  final m = int.tryParse(parts[1]);
-  if (h == null || m == null) return fallback;
-  return TimeOfDay(hour: h, minute: m);
-}
-
-String _displayAlertName(String p) {
-  switch (p) {
-    case 'PM2_5':
-      return 'PM2.5';
-    case 'PM10':
-      return 'PM10';
-    case 'CO':
-      return 'CO';
-          case 'NO2':
-      return 'NO₂';
-    case 'O3':
-      return 'O₃';
-    default:
-      return p;
+  TimeOfDay _fromHHmm(String s, TimeOfDay fallback) {
+    final parts = s.split(':');
+    if (parts.length != 2) return fallback;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return fallback;
+    return TimeOfDay(hour: h, minute: m);
   }
-}
+
+  String _displayAlertName(String p) {
+    switch (p) {
+      case 'PM2_5':
+        return 'PM2.5';
+      case 'PM10':
+        return 'PM10';
+      case 'CO':
+        return 'CO';
+      case 'NO2':
+        return 'NO₂';
+      case 'O3':
+        return 'O₃';
+      default:
+        return p;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
 
-      for (final c in _conditions) {
-  _recommendedAlertsByCondition[c]?.addAll(['Forecast (10 min)', 'Rapid Change']);
-}
+    for (final c in _conditions) {
+      _recommendedAlertsByCondition[c]?.addAll(['Rapid Change']);
+    }
     _loadProfileFromFirestore();
   }
 
@@ -185,9 +179,7 @@ String _displayAlertName(String p) {
   String _toHHmm(TimeOfDay t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
- 
-
-  //  IMAGE HELPERS 
+  //  IMAGE HELPERS
 
   Future<void> _pickImage() async {
     final x = await _picker.pickImage(
@@ -226,31 +218,28 @@ String _displayAlertName(String p) {
         await ref.delete();
       } catch (_) {}
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-        {
-          'photoUrl': FieldValue.delete(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'photoUrl': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       if (!mounted) return;
       setState(() => _pickedImage = null);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Photo removed ✅')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Photo removed ✅')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _removing = false);
     }
   }
 
-  //  LOAD / SAVE 
+  //  LOAD / SAVE
 
   Future<void> _loadProfileFromFirestore() async {
     final user = _user;
@@ -267,15 +256,12 @@ String _displayAlertName(String p) {
         _nameCtrl.text = user.displayName ?? '';
         _emailCtrl.text = user.email ?? '';
 
-        await ref.set(
-          {
-            'name': _nameCtrl.text.trim(),
-            'email': _emailCtrl.text.trim(),
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
-          SetOptions(merge: true),
-        );
+        await ref.set({
+          'name': _nameCtrl.text.trim(),
+          'email': _emailCtrl.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
 
         setState(() => _loading = false);
         return;
@@ -325,15 +311,13 @@ String _displayAlertName(String p) {
         if (endStr.isNotEmpty) _end = _fromHHmm(endStr, _end);
       }
 
-      _tips = (data['tipsEnabled'] == true);
-
       setState(() => _loading = false);
     } catch (e) {
       setState(() => _loading = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading profile: $e')));
     }
   }
 
@@ -363,7 +347,6 @@ String _displayAlertName(String p) {
           'start': _toHHmm(_start),
           'end': _toHHmm(_end),
         },
-        'tipsEnabled': _tips,
         'updatedAt': FieldValue.serverTimestamp(),
         if (photoUrl != null) 'photoUrl': photoUrl,
       };
@@ -380,20 +363,18 @@ String _displayAlertName(String p) {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saved to Firebase ✅')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Saved to Firebase ✅')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -410,7 +391,10 @@ String _displayAlertName(String p) {
     return Scaffold(
       appBar: AppBar(title: const Text("Smart Health Profile")),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
         builder: (context, snap) {
           final data = snap.data?.data();
           final savedPhotoUrl = (data?['photoUrl'] ?? '').toString().trim();
@@ -428,7 +412,7 @@ String _displayAlertName(String p) {
               key: _formKey,
               child: Column(
                 children: [
-                  //  AVATAR 
+                  //  AVATAR
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -447,7 +431,11 @@ String _displayAlertName(String p) {
                                 backgroundColor: const Color(0xFFF1F1F1),
                                 backgroundImage: avatar,
                                 child: avatar == null
-                                    ? Icon(Icons.person, size: 44, color: Colors.grey[500])
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 44,
+                                        color: Colors.grey[500],
+                                      )
                                     : null,
                               ),
                               Container(
@@ -457,7 +445,11 @@ String _displayAlertName(String p) {
                                   color: Color(0xFF32345F),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                                child: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
                             ],
                           ),
@@ -465,7 +457,10 @@ String _displayAlertName(String p) {
                         const SizedBox(height: 10),
                         Text(
                           'Tap to change photo',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         if (savedPhotoUrl.isNotEmpty || _pickedImage != null)
@@ -473,16 +468,22 @@ String _displayAlertName(String p) {
                             width: double.infinity,
                             height: 44,
                             child: OutlinedButton(
-                              onPressed: (_saving || _removing) ? null : _removePhoto,
+                              onPressed: (_saving || _removing)
+                                  ? null
+                                  : _removePhoto,
                               child: _removing
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Text(
                                       'Remove photo',
-                                      style: TextStyle(color: Color(0xFFD65B66)),
+                                      style: TextStyle(
+                                        color: Color(0xFFD65B66),
+                                      ),
                                     ),
                             ),
                           ),
@@ -498,7 +499,9 @@ String _displayAlertName(String p) {
                       children: [
                         TextFormField(
                           controller: _nameCtrl,
-                          decoration: const InputDecoration(labelText: "Full Name"),
+                          decoration: const InputDecoration(
+                            labelText: "Full Name",
+                          ),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -512,24 +515,24 @@ String _displayAlertName(String p) {
                   const SizedBox(height: 16),
 
                   _section(
-  title: "Security",
-  child: Column(
-    children: [
-      ListTile(
-        leading: const Icon(Icons.lock_outline),
-        title: const Text("Change Password"),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: _showPasswordDialog,
-      ),
-      ListTile(
-        leading: const Icon(Icons.email_outlined),
-        title: const Text("Change Email"),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: _showChangeEmailDialog,
-      ),
-    ],
-  ),
-),
+                    title: "Security",
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.lock_outline),
+                          title: const Text("Change Password"),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _showPasswordDialog,
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.email_outlined),
+                          title: const Text("Change Email"),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _showChangeEmailDialog,
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 16),
 
@@ -570,7 +573,9 @@ String _displayAlertName(String p) {
                       runSpacing: 8,
                       children: _pollutantAlerts.map((p) {
                         final isSelected = _selectedAlerts.contains(p);
-                        final isRecommended = _autoRecommendedAlerts.contains(p);
+                        final isRecommended = _autoRecommendedAlerts.contains(
+                          p,
+                        );
 
                         return FilterChip(
                           label: Row(
@@ -613,7 +618,9 @@ String _displayAlertName(String p) {
                       children: [
                         SwitchListTile(
                           value: _quietHours,
-                          title: const Text("Disable notifications during sleep"),
+                          title: const Text(
+                            "Disable notifications during sleep",
+                          ),
                           onChanged: (v) => setState(() => _quietHours = v),
                         ),
                         if (_quietHours)
@@ -644,20 +651,15 @@ String _displayAlertName(String p) {
                   ),
 
                   const SizedBox(height: 16),
-
-                  SwitchListTile(
-                    value: _tips,
-                    title: const Text("Personalized Health Tips"),
-                    onChanged: (v) => setState(() => _tips = v),
-                  ),
-
                   const SizedBox(height: 20),
 
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: (_saving || _removing) ? null : _saveProfileToFirestore,
+                      onPressed: (_saving || _removing)
+                          ? null
+                          : _saveProfileToFirestore,
                       child: _saving
                           ? const SizedBox(
                               width: 22,
@@ -704,201 +706,205 @@ String _displayAlertName(String p) {
     );
   }
 
- void _showPasswordDialog() {
-  final currentPassCtrl = TextEditingController();
-  final newPassCtrl = TextEditingController();
-  final confirmNewPassCtrl = TextEditingController();
+  void _showPasswordDialog() {
+    final currentPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confirmNewPassCtrl = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Change Password"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: currentPassCtrl,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: "Current Password"),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: newPassCtrl,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: "New Password"),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: confirmNewPassCtrl,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: "Confirm New Password"),
-          ),
-          const SizedBox(height: 8),
-
-          
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                final email = user?.email;
-
-                if (email == null || email.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("No email found for this account")),
-                  );
-                  return;
-                }
-
-                try {
-                  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Password reset email sent ✅")),
-                  );
-                } catch (e) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: $e")),
-                  );
-                }
-              },
-              child: const Text("Forgot password?"),
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Change Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPassCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Current Password"),
             ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: newPassCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "New Password"),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: confirmNewPassCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "Confirm New Password",
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+                  final email = user?.email;
+
+                  if (email == null || email.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("No email found for this account"),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    await FirebaseAuth.instance.sendPasswordResetEmail(
+                      email: email,
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Password reset email sent ✅"),
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                  }
+                },
+                child: const Text("Forgot password?"),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newPass = newPassCtrl.text.trim();
+              final confirmPass = confirmNewPassCtrl.text.trim();
+
+              if (newPass.isEmpty || confirmPass.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Please fill all fields")),
+                );
+                return;
+              }
+
+              if (newPass != confirmPass) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("New passwords do not match")),
+                );
+                return;
+              }
+
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) return;
+
+                //  باستخدام الباسورد القديم
+                final cred = EmailAuthProvider.credential(
+                  email: user.email!,
+                  password: currentPassCtrl.text.trim(),
+                );
+
+                await user.reauthenticateWithCredential(cred);
+
+                //  تحديث الباسورد
+                await user.updatePassword(newPass);
+
+                if (!mounted) return;
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Password updated successfully ✅"),
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Error: $e")));
+              }
+            },
+            child: const Text("Save"),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            final newPass = newPassCtrl.text.trim();
-            final confirmPass = confirmNewPassCtrl.text.trim();
-
-            
-            if (newPass.isEmpty || confirmPass.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Please fill all fields")),
-              );
-              return;
-            }
-
-            if (newPass != confirmPass) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("New passwords do not match")),
-              );
-              return;
-            }
-
-            try {
-              final user = FirebaseAuth.instance.currentUser;
-              if (user == null) return;
-
-              //  باستخدام الباسورد القديم
-              final cred = EmailAuthProvider.credential(
-                email: user.email!,
-                password: currentPassCtrl.text.trim(),
-              );
-
-              await user.reauthenticateWithCredential(cred);
-
-              //  تحديث الباسورد
-              await user.updatePassword(newPass);
-
-              if (!mounted) return;
-              Navigator.pop(context);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Password updated successfully ✅")),
-              );
-            } catch (e) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error: $e")),
-              );
-            }
-          },
-          child: const Text("Save"),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
   void _showChangeEmailDialog() {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Change Email"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: emailController,
-            decoration: const InputDecoration(labelText: "New Email"),
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Change Email"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: "New Email"),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Confirm Password"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
           ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: passwordController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: "Confirm Password"),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) return;
+
+                final cred = EmailAuthProvider.credential(
+                  email: user.email!,
+                  password: passwordController.text.trim(),
+                );
+
+                await user.reauthenticateWithCredential(cred);
+
+                await user.verifyBeforeUpdateEmail(emailController.text.trim());
+
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .set({
+                      'email': emailController.text.trim(),
+                      'updatedAt': FieldValue.serverTimestamp(),
+                    }, SetOptions(merge: true));
+
+                if (!mounted) return;
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Verification email sent")),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Error: $e")));
+              }
+            },
+            child: const Text("Save"),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            try {
-              final user = FirebaseAuth.instance.currentUser;
-              if (user == null) return;
-
-              final cred = EmailAuthProvider.credential(
-                email: user.email!,
-                password: passwordController.text.trim(),
-              );
-
-              await user.reauthenticateWithCredential(cred);
-
-              await user.verifyBeforeUpdateEmail(
-                emailController.text.trim(),
-              );
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .set({
-                'email': emailController.text.trim(),
-                'updatedAt': FieldValue.serverTimestamp(),
-              }, SetOptions(merge: true));
-
-              if (!mounted) return;
-              Navigator.pop(context);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Verification email sent")),
-              );
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error: $e")),
-              );
-            }
-          },
-          child: const Text("Save"),
-        ),
-      ],
-    ),
-  );
+    );
+  }
 }
-
-}
-
