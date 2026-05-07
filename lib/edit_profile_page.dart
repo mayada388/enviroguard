@@ -504,10 +504,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailCtrl,
-                          decoration: const InputDecoration(labelText: "Email"),
-                        ),
+                       TextFormField(
+  controller: _emailCtrl,
+  enabled: false,
+  decoration: const InputDecoration(
+    labelText: "Email",
+  ),
+),
                       ],
                     ),
                   ),
@@ -805,7 +808,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 final user = FirebaseAuth.instance.currentUser;
                 if (user == null) return;
 
-                //  باستخدام الباسورد القديم
+              
                 final cred = EmailAuthProvider.credential(
                   email: user.email!,
                   password: currentPassCtrl.text.trim(),
@@ -813,7 +816,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 await user.reauthenticateWithCredential(cred);
 
-                //  تحديث الباسورد
                 await user.updatePassword(newPass);
 
                 if (!mounted) return;
@@ -821,7 +823,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text("Password updated successfully ✅"),
+                    content: Text("Password updated successfully"),
                   ),
                 );
               } catch (e) {
@@ -837,74 +839,134 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
+void _showChangeEmailDialog() {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool isDialogLoading = false;
 
-  void _showChangeEmailDialog() {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Change Email"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: "New Email"),
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (context, setStateDialog) {
+        return AlertDialog(
+          title: const Text("Change Email"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: "New Email",
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Current Password",
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isDialogLoading
+                  ? null
+                  : () => Navigator.pop(dialogContext),
+              child: const Text("Cancel"),
             ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Confirm Password"),
+            ElevatedButton(
+              onPressed: isDialogLoading
+                  ? null
+                  : () async {
+                      final newEmail = emailController.text.trim();
+                      final password = passwordController.text.trim();
+
+                      if (newEmail.isEmpty || password.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Fill all fields"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      setStateDialog(() {
+                        isDialogLoading = true;
+                      });
+
+                      try {
+                        final user =
+                            FirebaseAuth.instance.currentUser;
+
+                        if (user == null) return;
+
+                        final credential =
+                            EmailAuthProvider.credential(
+                          email: user.email!,
+                          password: password,
+                        );
+
+                        await user.reauthenticateWithCredential(
+                          credential,
+                        );
+
+                        await user.verifyBeforeUpdateEmail(
+                          newEmail,
+                        );
+
+                        if (!mounted) return;
+
+                        Navigator.pop(dialogContext);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Verification email sent 📩",
+                            ),
+                          ),
+                        );
+                      } on FirebaseAuthException catch (e) {
+                        setStateDialog(() {
+                          isDialogLoading = false;
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              e.message ?? "Error",
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        setStateDialog(() {
+                          isDialogLoading = false;
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
+                    },
+              child: isDialogLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text("Save"),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                final user = FirebaseAuth.instance.currentUser;
-                if (user == null) return;
-
-                final cred = EmailAuthProvider.credential(
-                  email: user.email!,
-                  password: passwordController.text.trim(),
-                );
-
-                await user.reauthenticateWithCredential(cred);
-
-                await user.verifyBeforeUpdateEmail(emailController.text.trim());
-
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .set({
-                      'email': emailController.text.trim(),
-                      'updatedAt': FieldValue.serverTimestamp(),
-                    }, SetOptions(merge: true));
-
-                if (!mounted) return;
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Verification email sent")),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text("Error: $e")));
-              }
-            },
-            child: const Text("Save"),
-          ),
-        ],
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
+}
 }

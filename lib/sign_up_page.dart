@@ -50,6 +50,7 @@ class _SignUpPageState extends State<SignUpPage> {
       await user.updateDisplayName(name);
 
       await user.sendEmailVerification();
+      print("verification sent");
       // هنا التحقق هل الايميل موجود في جدول دعوات الادمن (اذا سوينا اضافه ادمن)
       final inviteDoc = await FirebaseFirestore.instance
           .collection('admin_invites')

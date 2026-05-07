@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -123,11 +124,24 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               _buildInputField(
-                label: 'Password',
-                hint: 'Enter your password',
-                icon: Icons.lock_outline,
-                isPassword: true,
-                controller: _passwordController,
+  label: 'Password',
+  hint: 'Enter your password',
+  icon: Icons.lock_outline,
+  isPassword: _obscurePassword,
+  controller: _passwordController,
+  suffixIcon: IconButton(
+    onPressed: () {
+      setState(() {
+        _obscurePassword = !_obscurePassword;
+      });
+    },
+    icon: Icon(
+      _obscurePassword
+          ? Icons.visibility_off
+          : Icons.visibility,
+      color: Colors.grey,
+    ),
+  ),
                 validator: (value) {
                   final text = value ?? '';
                   if (text.isEmpty) return 'Please enter your password';
@@ -258,12 +272,42 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      // قراءه الدور (role)
-      final role = (doc.data()?['role'] ?? 'user').toString();
+//  lowercaseنجيب الإيميل بصيغة 
+final emailLower = refreshedUser!.email!.toLowerCase();
+
+// admin_invitesنتحقق هل الإيميل موجود في 
+final inviteDoc = await FirebaseFirestore.instance
+    .collection('admin_invites')
+    .doc(emailLower)
+    .get();
+
+//  إذا موجود  نخلي المستخدم ادمن
+if (inviteDoc.exists &&
+    inviteDoc.data()?['enabled'] == true) {
+
+  await FirebaseFirestore.instance
+      .collection('users')
+      .doc(uid)
+      .update({
+    'role': 'admin',
+  });
+
+  //  نقفل الدعوة بعد الاستخدام
+  await FirebaseFirestore.instance
+      .collection('admin_invites')
+      .doc(emailLower)
+      .update({
+    'enabled': false,
+  });
+}
+
+// نقرأ الدور بعد التحديث
+final doc = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .get();
+
+final role = (doc.data()?['role'] ?? 'user').toString();
 
       if (!mounted) return;
       // اذا الدور ادمن يفتح صفحه الادمن
@@ -311,52 +355,57 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Widget _buildInputField({
-    required String label,
-    required String hint,
-    required IconData icon,
-    required TextEditingController controller,
-    String? Function(String?)? validator,
-    bool isPassword = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: Color(0xFF4B4B4B),
-          ),
+ Widget _buildInputField({
+  required String label,
+  required String hint,
+  required IconData icon,
+  required TextEditingController controller,
+  String? Function(String?)? validator,
+  bool isPassword = false,
+  Widget? suffixIcon,
+}
+) 
+{
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          color: Color(0xFF4B4B4B),
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: isPassword,
-            validator: validator,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-              prefixIcon: Icon(icon, color: Colors.grey, size: 22),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.all(16),
+      ),
+      const SizedBox(height: 8),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle:
+                const TextStyle(color: Colors.grey, fontSize: 14),
+            prefixIcon: Icon(icon, color: Colors.grey, size: 22),
+            suffixIcon: suffixIcon,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.all(16),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

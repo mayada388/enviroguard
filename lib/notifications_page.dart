@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ class NotificationsPage extends StatefulWidget {
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
+
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
@@ -556,7 +558,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid; // اليوزر الحالي
-
+    final isAdmin = FirebaseAuth.instance.currentUser?.email == 'admin@gmail.com';
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FB), // خلفية زي الصورة
       appBar: AppBar(
@@ -584,12 +586,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
               ),
             )
           : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('alerts') // alerts collection
-                  .where('userUid', isEqualTo: uid) // تنبيهات هذا اليوزر
-                  .orderBy('timestamp', descending: true) // الأحدث أول
-                  .limit(200) // نجيب أكثر لأننا بنفلتر 7 أيام
-                  .snapshots(),
+  stream: isAdmin
+      ? FirebaseFirestore.instance
+          .collection('alerts')
+          .orderBy('timestamp', descending: true)
+          .snapshots()
+      : FirebaseFirestore.instance
+          .collection('alerts')
+          .where('userUid', isEqualTo: uid)
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -613,7 +619,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   final data = d.data() as Map<String, dynamic>; // data
                   final ts = data['timestamp']; // timestamp
                   if (ts is! Timestamp) continue;
-                  if (!_isWithinLast7Days(ts)) continue;
+                  
                   docs.add(d);
                 }
 
