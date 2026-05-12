@@ -145,128 +145,229 @@ class AdminSystemMonitoringPage extends StatelessWidget {
   }
 
   // SENSORS (sensors: SEN-001..003)
-  Widget _buildSensorsTable() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('sensors').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Text('Loading sensors...');
-          }
+ Widget _buildSensorsTable() {
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance.collection('sensors').snapshots(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-          final docs = snapshot.data!.docs;
+      final docs = snapshot.data!.docs;
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columnSpacing: 18,
-              headingRowHeight: 32,
-              dataRowHeight: 32,
-              columns: const [
-                DataColumn(label: Text('Sensor ID')),
-                DataColumn(label: Text('Type')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Location')),
-                DataColumn(label: Text('Last Update')),
+      return Column(
+        children: docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final status = (data['status'] ?? '').toString();
+          final isActive = status.toLowerCase() == 'active';
+          final color = isActive
+              ? const Color(0xFF3BAF63)
+              : const Color(0xFFD65B66);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
-              rows: docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-
-                final sensorId = doc.id;
-                final type = (data['sensorType'] ?? '').toString();
-                final status = (data['status'] ?? '').toString();
-                final location = (data['locationId'] ?? '').toString();
-                final lastUpdate = _formatTime(data['lastUpdate']);
-
-                final color = status.toLowerCase() == 'active'
-                    ? const Color(0xFF3BAF63)
-                    : const Color(0xFFD65B66);
-
-                return DataRow(
-                  cells: [
-                    DataCell(Text(sensorId, style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(type, style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(status,
-                        style: TextStyle(fontSize: 11, color: color))),
-                    DataCell(Text(location, style: const TextStyle(fontSize: 11))),
-                    DataCell(Text(lastUpdate, style: const TextStyle(fontSize: 11))),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        doc.id,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (data['sensorType'] ?? '').toString(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (data['locationId'] ?? '').toString(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    Text(
+                      _formatTime(data['lastUpdate']),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ],
-                );
-              }).toList(),
+                ),
+              ],
             ),
           );
-        },
-      ),
-    );
-  }
+        }).toList(),
+      );
+    },
+  );
+}
 
   // ALERTS (alerts structure you gave)
-  Widget _buildAlertsTable() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('alerts')
-            .orderBy('timestamp', descending: true)
-            .limit(5)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Text('Loading alerts...');
-          }
+Widget _buildAlertsTable() {
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection('alerts')
+        .orderBy('timestamp', descending: true)
+        .limit(5)
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-          final docs = snapshot.data!.docs;
+      final docs = snapshot.data!.docs;
 
-          return DataTable(
-            columns: const [
-              DataColumn(label: Text('Title')),
-              DataColumn(label: Text('Type')),
-              DataColumn(label: Text('Value')),
-              DataColumn(label: Text('Location')),
-              DataColumn(label: Text('Time')),
-            ],
-            rows: docs.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
+      return Column(
+        children: docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final level = (data['alertLevel'] ?? '').toString().toLowerCase();
 
-              return DataRow(
-                cells: [
-                  DataCell(Text((data['title'] ?? '').toString())),
-                  DataCell(Text((data['pollutantType'] ?? '').toString())),
-                  DataCell(Text((data['value'] ?? '').toString())),
-                  DataCell(Text((data['locationId'] ?? '').toString())),
-                  DataCell(Text(_formatTime(data['timestamp']))),
-                ],
-              );
-            }).toList(),
+          final color = level.contains('unhealthy')
+              ? const Color(0xFFD65B66)
+              : level.contains('moderate')
+                  ? const Color(0xFFE9B35F)
+                  : const Color(0xFF3BAF63);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (data['title'] ?? '').toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (data['pollutantType'] ?? '').toString(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Value: ${(data['value'] ?? '').toString()}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (data['locationId'] ?? '').toString(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    Text(
+                      _formatTime(data['timestamp']),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           );
-        },
-      ),
-    );
-  }
+        }).toList(),
+      );
+    },
+  );
+}
 
   static String _formatTime(dynamic value) {
     if (value == null) return '-';

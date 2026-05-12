@@ -347,6 +347,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'start': _toHHmm(_start),
           'end': _toHHmm(_end),
         },
+        'alertState': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
         if (photoUrl != null) 'photoUrl': photoUrl,
       };
